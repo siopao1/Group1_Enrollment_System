@@ -1,0 +1,58 @@
+/* ---------- Form controls ---------- */
+.form-card {
+  padding: 22px;
+}
+.form-section {
+  margin-bottom: 24px;
+}
+.form-section:last-child {
+  margin-bottom: 0;
+}
+.form-section h3 {
+  font-size: 14px;
+  margin: 0 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--ink);
+  font-weight: 700;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4b4770;
+  margin-bottom: 6px;
+}
+.required {
+  color: var(--danger);
+}
+textarea.input {
+  height: 90px;
+  padding-top: 10px;
+  resize: vertical;
+  border-radius: var(--r-md);
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* Explicit invalid-field highlight, applied by JS on a failed submit.
+   Browsers auto-style invalid text inputs but not <select> elements, so this
+   makes every field type (input, textarea, select) show the same clear
+   red highlight instead of leaving dropdowns with no visual indication. */
+.input.is-invalid,
+.select.is-invalid,
+textarea.is-invalid {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 3px var(--danger-soft);
+}

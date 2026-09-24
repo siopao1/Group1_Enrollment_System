@@ -1,0 +1,175 @@
+/* ---------- Modal dialog ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.22s ease, visibility 0s linear 0.22s;
+}
+.modal-backdrop.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+.modal {
+  width: min(1280px, calc(100vw - 40px));
+  max-height: min(88vh, 900px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  overscroll-behavior: contain;
+  background: #fff;
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+  transform: translateY(12px) scale(0.985);
+  opacity: 1;
+  transition: transform 0.22s ease;
+}
+.modal::-webkit-scrollbar {
+  display: none;
+}
+.modal-compact {
+  width: min(640px, calc(100vw - 40px));
+}
+.modal-confirm .modal-head h3,
+.modal-confirm .modal-body,
+.modal-confirm .modal-body strong {
+  display: block;
+  position: relative;
+  z-index: 1;
+  color: var(--ink);
+  visibility: visible;
+  opacity: 1;
+}
+.modal-confirm .modal-head {
+  min-height: 58px;
+}
+.modal-confirm .modal-body {
+  min-height: 92px;
+  line-height: 1.6;
+}
+.modal-confirm {
+  width: 100%;
+  transform: none;
+}
+/* The inner dialog must never be wider than its #modal host, otherwise focusing
+   the close button scrolls the host sideways and hides the title/body. */
+#modal > .modal {
+  max-width: 100%;
+}
+.modal-confirm .modal-body p {
+  display: block;
+  margin: 0 0 10px;
+  color: var(--ink);
+  visibility: visible;
+  opacity: 1;
+}
+.modal-confirm .modal-body p:last-child {
+  margin-bottom: 0;
+  color: var(--muted);
+}
+.modal-backdrop.open .modal {
+  transform: translateY(0) scale(1);
+}
+#modal.modal-host-compact {
+  width: min(640px, calc(100vw - 40px));
+}
+#modal.modal-host-confirm {
+  width: min(560px, calc(100vw - 40px));
+}
+#modal.modal-host-logout {
+  width: min(440px, calc(100vw - 40px));
+}
+.modal-confirm-logout {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(198, 40, 40, 0.12);
+  box-shadow: 0 24px 60px -20px rgba(67, 52, 35, 0.4);
+}
+.modal-head {
+  padding: 19px 22px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-confirm-logout .modal-head {
+  position: relative;
+  gap: 12px;
+  padding: 24px 24px 20px;
+  background: #fff;
+  border-bottom: 0;
+}
+.modal-symbol {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 12px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 17px;
+}
+.modal-head h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.modal-confirm-logout .modal-head h3 {
+  font-size: 18px;
+}
+.modal-body {
+  padding: 22px;
+}
+.modal-form {
+  padding: 2px;
+}
+.modal-page .page-intro {
+  margin-bottom: 18px;
+}
+.modal-page .page-intro p {
+  display: none;
+}
+.modal-page > .card,
+.modal-page > .grid-2 {
+  box-shadow: none;
+}
+.modal-confirm-logout .modal-body {
+  padding: 8px 24px 25px 74px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.modal-confirm-logout .modal-body p {
+  margin: 0;
+}
+.modal-foot {
+  padding: 15px 22px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.modal-confirm-logout .modal-foot {
+  padding: 16px 24px 20px;
+  background: #fff;
+  border-top: 1px solid var(--border);
+}
+.modal-confirm-logout .modal-foot .btn {
+  min-width: 104px;
+  justify-content: center;
+}
+.modal-confirm-logout .modal-foot .btn-danger {
+  box-shadow: none;
+}

@@ -1,0 +1,96 @@
+/* ---------- Bar chart / donut chart ---------- */
+.chart {
+  height: 236px;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 10px 8px 28px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.chart:before,
+.chart:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--border);
+}
+.chart:before {
+  top: 25%;
+}
+.chart:after {
+  top: 55%;
+}
+.bar {
+  flex: 1;
+  max-width: 54px;
+  background: var(--p1-icon);
+  border-radius: 10px 10px 0 0;
+  position: relative;
+  z-index: 1;
+}
+.bar.active {
+  background: var(--brand);
+}
+.bar-label {
+  position: absolute;
+  bottom: -24px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10.5px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.donut-wrap {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.donut {
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  /* Fallback only — the real slices are set inline in dashboard.js, built
+     from the actual per-program percentages instead of fixed numbers. */
+  background: #f0ece2;
+  position: relative;
+  flex: none;
+}
+.donut:after {
+  content: "";
+  position: absolute;
+  inset: 30px;
+  background: #fff;
+  border-radius: 50%;
+}
+.legend {
+  display: grid;
+  gap: 11px;
+}
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--ink);
+}
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--brand);
+  flex: none;
+}
+.dot.blue {
+  background: var(--p2-fg);
+}
+.dot.gold {
+  background: var(--amber);
+}
+.dot.gray {
+  background: #b7aeea;
+}
+.dot.light {
+  background: #e7e4f7;
+}

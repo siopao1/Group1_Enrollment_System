@@ -1,0 +1,43 @@
+/* ---------- Design tokens ---------- */
+:root {
+  --ink: #2b2118;
+  --muted: #706457;
+  --label-soft: #9a8d7d;
+  --brand: #c62828;
+  --brand-dark: #9e1b1b;
+  --brand-light: #e05252;
+  --amber: #d9a441;
+  --bg: #fff;
+  --card: #fff;
+  --border: #e8e0d4;
+
+  --success: #17b26a;
+  --success-soft: #e3faee;
+  --warning: #d9a441;
+  --warning-soft: #fff4d6;
+  --danger: #b42318;
+  --danger-soft: #fbe9e7;
+  --info: #3e8ef7;
+  --info-soft: #e8f2ff;
+  --neutral-soft: #f5f0e8;
+
+  --p1: #fff3d6;
+  --p1-icon: #f0d38b;
+  --p1-fg: #a06a00;
+  --p2: #e3f0ff;
+  --p2-icon: #d2e7ff;
+  --p2-fg: #2f7fe0;
+  --p3: #e1f8ec;
+  --p3-icon: #cbf1dc;
+  --p3-fg: #149463;
+  --p4: #ffefdd;
+  --p4-icon: #ffe1be;
+  --p4-fg: #db7f1e;
+
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-pill: 999px;
+  --shadow: 0 20px 45px -16px rgba(145, 35, 26, 0.24);
+  --shadow-sm: 0 6px 20px -8px rgba(145, 35, 26, 0.12);
+}

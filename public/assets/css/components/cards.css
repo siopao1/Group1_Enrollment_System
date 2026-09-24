@@ -1,0 +1,36 @@
+/* ---------- Generic cards ---------- */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1.65fr 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+.card-header {
+  padding: 17px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-header h3 {
+  font-size: 15px;
+  margin: 0;
+  font-weight: 700;
+  color: var(--ink);
+}
+.card-header span {
+  color: var(--muted);
+  font-size: 11px;
+}
+.card-body {
+  padding: 20px;
+}
+.program-breakdown {
+  margin-bottom: 18px;
+}

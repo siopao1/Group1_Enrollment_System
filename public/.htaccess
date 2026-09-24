@@ -1,0 +1,12 @@
+Options -Indexes
+
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "same-origin"
+</IfModule>
+
+# Serve .js modules with the correct type so `import` works on every server.
+<IfModule mod_mime.c>
+    AddType text/javascript .js
+</IfModule>

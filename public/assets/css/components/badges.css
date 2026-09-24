@@ -1,0 +1,50 @@
+/* ---------- Status boxes & badges ---------- */
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.status-box {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px;
+  background: #fcfbff;
+}
+.status-box strong {
+  font-size: 19px;
+  display: block;
+  margin: 8px 0 3px;
+  color: var(--ink);
+}
+.status-box span {
+  font-size: 10.5px;
+  color: var(--muted);
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--r-pill);
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.badge.success {
+  background: var(--success-soft);
+  color: #0c8a54;
+}
+.badge.warning {
+  background: var(--warning-soft);
+  color: #b4740a;
+}
+.badge.danger {
+  background: var(--danger-soft);
+  color: #c22a48;
+}
+.badge.info {
+  background: var(--info-soft);
+  color: #1d5fc7;
+}
+.badge.neutral {
+  background: var(--neutral-soft);
+  color: #706457;
+}

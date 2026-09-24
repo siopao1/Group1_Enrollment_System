@@ -1,0 +1,54 @@
+/* ---------- Reports page ---------- */
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.report-card {
+  padding: 20px;
+}
+.report-card .report-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 15px;
+  font-size: 18px;
+}
+.report-card h3 {
+  font-size: 14px;
+  margin: 0 0 5px;
+  color: var(--ink);
+  font-weight: 700;
+}
+.report-card p {
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.6;
+  margin: 0 0 16px;
+}
+.report-grid .report-card:nth-child(6n + 1) .report-icon {
+  background: var(--p1-icon);
+  color: var(--p1-fg);
+}
+.report-grid .report-card:nth-child(6n + 2) .report-icon {
+  background: var(--p2-icon);
+  color: var(--p2-fg);
+}
+.report-grid .report-card:nth-child(6n + 3) .report-icon {
+  background: var(--p3-icon);
+  color: var(--p3-fg);
+}
+.report-grid .report-card:nth-child(6n + 4) .report-icon {
+  background: var(--p4-icon);
+  color: var(--p4-fg);
+}
+.report-grid .report-card:nth-child(6n + 5) .report-icon {
+  background: var(--p2-icon);
+  color: var(--p2-fg);
+}
+.report-grid .report-card:nth-child(6n + 6) .report-icon {
+  background: var(--p3-icon);
+  color: var(--p3-fg);
+}

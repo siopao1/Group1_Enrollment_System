@@ -1,0 +1,23 @@
+# Environment and secrets
+.env
+*.pem
+*.key
+
+# Runtime artefacts
+storage/logs/*
+!storage/logs/.gitkeep
+storage/cache/*
+!storage/cache/.gitkeep
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
