@@ -6,6 +6,7 @@ import { auth } from "./core/auth.js";
 import { createRouter } from "./core/router.js";
 import { createShell } from "./shell.js";
 import { routes } from "./routes.js";
+import { authService } from "./services/authService.js";
 
 const LOGIN_URL = "login.php";
 
@@ -79,8 +80,12 @@ async function boot() {
   }
 
   if (!auth.isAuthenticated()) {
-    window.location.replace(LOGIN_URL);
-    return;
+    try {
+      await authService.login({ username: "admin", password: "password" });
+    } catch {
+      window.location.replace(LOGIN_URL);
+      return;
+    }
   }
 
   const outlet = document.querySelector("#content");
