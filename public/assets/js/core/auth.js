@@ -1,11 +1,5 @@
-/**
- * Client-side session state.
- *
- * This module answers "what should the interface show?" — never "is this
- * request allowed?". The PHP backend re-checks the session and the role on
- * every protected endpoint; a user who edits localStorage gains nothing but a
- * broken-looking UI and 401/403 responses.
- */
+
+
 import { permissionsForRole, ROLE_LABELS } from "../config/roles.js";
 import { storage } from "./storage.js";
 import { setAuthToken } from "./apiClient.js";
@@ -28,7 +22,6 @@ export const auth = {
 
   roleLabel: () => (currentUser ? ROLE_LABELS[currentUser.role] ?? currentUser.role : "Guest"),
 
-  /** UI-level permission check. */
   can(permission) {
     if (!currentUser) return false;
     const granted = currentUser.permissions?.length
@@ -41,7 +34,6 @@ export const auth = {
     return currentUser ? roles.includes(currentUser.role) : false;
   },
 
-  /** Called by authService after the backend confirms the credentials. */
   setSession({ user, token }) {
     currentUser = user ?? null;
     if (user) storage.set(USER_KEY, user);

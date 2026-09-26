@@ -1,9 +1,5 @@
-/**
- * Single source of truth for the primary navigation.
- *
- * The markup used to hard-code these buttons in index.php; keeping them here
- * lets the sidebar be filtered by role without duplicating the list.
- */
+
+
 import { PERMISSIONS as P } from "./roles.js";
 
 export const navigation = [

@@ -1,10 +1,5 @@
-/**
- * Student list: search, filters, pagination and row actions.
- *
- * The table body is re-rendered on its own (`refresh()`), so filtering never
- * rebuilds the whole page or re-binds listeners — the toolbar keeps one
- * delegated listener for the lifetime of the page.
- */
+
+
 import { pageHeader } from "../components/pageHeader.js";
 import { badge } from "../components/badge.js";
 import { avatar } from "../components/avatar.js";
@@ -236,7 +231,6 @@ export default {
       }),
     ];
 
-    // Allow the global search box to drive this page.
     const pending = sessionStorage.getItem("pendingStudentSearch");
     if (pending) {
       sessionStorage.removeItem("pendingStudentSearch");

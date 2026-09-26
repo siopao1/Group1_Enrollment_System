@@ -1,4 +1,4 @@
-/* ---------- Modal dialog ---------- */
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -61,8 +61,7 @@
   width: 100%;
   transform: none;
 }
-/* The inner dialog must never be wider than its #modal host, otherwise focusing
-   the close button scrolls the host sideways and hides the title/body. */
+
 #modal > .modal {
   max-width: 100%;
 }

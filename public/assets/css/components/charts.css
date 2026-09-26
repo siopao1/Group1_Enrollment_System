@@ -1,4 +1,4 @@
-/* ---------- Bar chart / donut chart ---------- */
+
 .chart {
   height: 236px;
   display: flex;
@@ -51,8 +51,7 @@
   width: 148px;
   height: 148px;
   border-radius: 50%;
-  /* Fallback only — the real slices are set inline in dashboard.js, built
-     from the actual per-program percentages instead of fixed numbers. */
+
   background: #f0ece2;
   position: relative;
   flex: none;

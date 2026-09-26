@@ -1,10 +1,5 @@
 <?php
 
-/**
- * A person's name — kept separate from Student so the inheritance
- * relationship (Student extends Person) is real, not just a formality.
- * Matches the Person -> Student pattern from the OOP PHP slides.
- */
 class Person
 {
     private string $firstName;
@@ -40,7 +35,6 @@ class Person
         return $this->suffix;
     }
 
-    /** Combines the name parts into one display string, skipping any that are blank. */
     public function getFullName(): string
     {
         $parts = array_filter([

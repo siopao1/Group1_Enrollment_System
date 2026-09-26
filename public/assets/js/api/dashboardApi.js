@@ -1,9 +1,5 @@
-/**
- * Aggregated dashboard figures.
- *
- * Every stat card is real, computed by public/api/dashboard.php from the
- * actual database — student counts, pending students, and program counts.
- */
+
+
 import { ApiError } from "../core/apiError.js";
 
 async function summary() {

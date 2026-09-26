@@ -1,22 +1,13 @@
-/*
- * Enrollment System — stylesheet entry point.
- *
- * The original single styles.css was split into layers. The import order below
- * IS the cascade order, so keep it: tokens -> reset -> layout -> components ->
- * pages -> responsive overrides (responsive must stay last).
- */
 
-/* Base */
+
 @import url("base/variables.css");
 @import url("base/reset.css");
 
-/* Layout */
 @import url("layout/shell.css");
 @import url("layout/topnav.css");
 @import url("layout/topbar.css");
 @import url("layout/content.css");
 
-/* Components */
 @import url("components/buttons.css");
 @import url("components/stat-cards.css");
 @import url("components/cards.css");
@@ -29,11 +20,9 @@
 @import url("components/modal.css");
 @import url("components/toast.css");
 
-/* Pages */
 @import url("pages/profile.css");
 @import url("pages/enrollment.css");
 @import url("pages/reports.css");
 @import url("pages/auth.css");
 
-/* Responsive overrides — must remain last */
 @import url("layout/responsive.css");

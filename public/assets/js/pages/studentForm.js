@@ -1,4 +1,4 @@
-/** Add Student form. Validation runs client-side first, then again in PHP. */
+
 import { pageHeader } from "../components/pageHeader.js";
 import { field, selectField, textareaField } from "../components/formFields.js";
 import { notify } from "../components/toast.js";
@@ -52,7 +52,6 @@ export function studentFormMarkup() {
 </form>`;
 }
 
-/** "id" is what the validator calls the field the form itself names "studentId". */
 function fieldNameFor(errorKey) {
   return errorKey === "id" ? "studentId" : errorKey;
 }
@@ -61,7 +60,6 @@ function clearFieldErrors(form) {
   qsa(".is-invalid", form).forEach((el) => el.classList.remove("is-invalid"));
 }
 
-/** Highlights every invalid field, then scrolls to and focuses the first one. */
 function highlightInvalidFields(form, errors) {
   const names = Object.keys(errors).map(fieldNameFor);
   names.forEach((name) => form.querySelector(`[name="${name}"]`)?.classList.add("is-invalid"));
@@ -91,7 +89,6 @@ export function mountStudentForm(form, { onSuccess, onCancel } = {}) {
     }
   });
 
-  // Clear a field's highlight as soon as the user starts fixing it.
   const offClearOnInput = delegate(form, ".is-invalid", "input", (_e, el) => el.classList.remove("is-invalid"));
   const offClearOnChange = delegate(form, ".is-invalid", "change", (_e, el) => el.classList.remove("is-invalid"));
 

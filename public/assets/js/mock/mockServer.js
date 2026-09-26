@@ -1,10 +1,5 @@
-/**
- * TEMPORARY transport that answers the same routes the PHP API will expose,
- * with the same JSON envelope and the same HTTP status codes.
- *
- * It is plugged into `apiClient` from `main.js` only while
- * `appConfig.useMockApi` is true, so no api/service/page module knows it exists.
- */
+
+
 import { appConfig } from "../config/app.config.js";
 import { permissionsForRole } from "../config/roles.js";
 import { mockDatabase as db } from "./mockDatabase.js";
@@ -22,8 +17,6 @@ const fail = (status, message, errors = null) => ({
 });
 
 const delay = () => new Promise((resolve) => setTimeout(resolve, appConfig.mockLatencyMs));
-
-/* ------------------------------------------------------------------ helpers */
 
 function paginate(rows, query = {}) {
   const page = Math.max(1, Number(query.page) || 1);
@@ -44,12 +37,10 @@ function studentOf(id) {
   return db.students.find((s) => s.id === id) || null;
 }
 
-/* ------------------------------------------------------------------- routes */
-
 const routes = [
   ["POST", "/auth/login", ({ body }) => {
     const user = db.users.find((u) => u.username === String(body?.username || "").toLowerCase().trim());
-    // Demo credentials only. The real check is password_verify() in PHP.
+    
     if (!user || body?.password !== "password") {
       return fail(401, "Invalid username or password.");
     }
@@ -267,14 +258,6 @@ function match(method, endpoint) {
   return null;
 }
 
-/**
- * Signature mirrors what `apiClient` expects from a transport.
- *
- * The result is cloned on the way out: a real HTTP response is always a fresh
- * object, so handing back live references to the in-memory rows would let the
- * UI mutate "the database" by accident and hide bugs that would appear against
- * the real API.
- */
 export async function mockTransport({ method, endpoint, query = {}, body = null }) {
   await delay();
   const found = match(method, endpoint);

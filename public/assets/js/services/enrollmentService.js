@@ -1,10 +1,5 @@
-/**
- * Enrollment use-cases, including the in-progress selection ("cart") a
- * registrar builds before confirming.
- *
- * Totals are computed here rather than inside the page so the same figures can
- * be reused and unit-tested.
- */
+
+
 import { enrollmentApi } from "../api/enrollmentApi.js";
 import { offeringApi } from "../api/offeringApi.js";
 import { appConfig } from "../config/app.config.js";

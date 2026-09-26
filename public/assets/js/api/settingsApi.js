@@ -1,4 +1,4 @@
-/** System preferences stored server-side, per installation. */
+
 import { apiClient } from "../core/apiClient.js";
 
 export const settingsApi = {

@@ -1,9 +1,5 @@
 import { escapeHtml } from "../core/dom.js";
 
-/**
- * Pagination bar driven by real meta from the API instead of the fixed
- * "1 2 3 4 5" buttons the mockup used.
- */
 export function pagination({ page, perPage, total }) {
   const pages = Math.max(1, Math.ceil(total / perPage));
   const from = total === 0 ? 0 : (page - 1) * perPage + 1;

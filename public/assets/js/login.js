@@ -1,10 +1,5 @@
-/**
- * Login page entry point.
- *
- * The form only collects credentials and shows the result. Verification,
- * hashing and session creation all happen in PHP (AuthController -> AuthService
- * -> UserRepository).
- */
+
+
 import { appConfig } from "./config/app.config.js";
 import { useMockTransport } from "./core/apiClient.js";
 import { auth } from "./core/auth.js";

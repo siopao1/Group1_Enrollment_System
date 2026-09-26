@@ -1,6 +1,5 @@
 import { escapeHtml } from "../core/dom.js";
 
-/** Skeleton shown while a page awaits its data. */
 export function loadingState(title = "") {
   return `<div class="card"><div class="card-body">
   <div class="empty">
@@ -11,7 +10,6 @@ export function loadingState(title = "") {
 </div></div>`;
 }
 
-/** Shown when a request fails. Includes an optional retry button. */
 export function errorState(message, { retry = false } = {}) {
   return `<div class="card"><div class="card-body">
   <div class="empty">
@@ -23,7 +21,6 @@ export function errorState(message, { retry = false } = {}) {
 </div></div>`;
 }
 
-/** Shown inside a table body when a filtered result set is empty. */
 export function emptyState({
   title = "No records found.",
   description = "Try adjusting your search or filters.",
@@ -37,7 +34,6 @@ export function emptyState({
 </div>`;
 }
 
-/** Shown when the signed-in role may not view a route. */
 export function unauthorizedState(title = "this page") {
   return `<div class="card"><div class="card-body">
   <div class="empty">

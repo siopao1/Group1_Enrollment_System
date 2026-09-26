@@ -1,4 +1,4 @@
-/** Auth endpoints. Credentials are verified by PHP — never in the browser. */
+
 import { apiClient } from "../core/apiClient.js";
 
 export const authApi = {

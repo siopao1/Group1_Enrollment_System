@@ -3,11 +3,6 @@
 require_once __DIR__ . '/Person.php';
 require_once __DIR__ . '/Program.php';
 
-/**
- * The system's main entity. Extends Person for name handling (inheritance),
- * and holds a Program — a related entity — for whichever program they're
- * enrolled in.
- */
 class Student extends Person
 {
     private string $studentId;
@@ -85,7 +80,6 @@ class Student extends Person
         return $this->dateRegistered;
     }
 
-    /** Shapes this student the same way the API has always responded — the JSON output doesn't change. */
     public function toArray(): array
     {
         return [

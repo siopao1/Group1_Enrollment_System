@@ -1,14 +1,5 @@
-/**
- * Hash router.
- *
- * The old app kept `currentPage` in a global and swapped `innerHTML` from a
- * `pages` object, so pages could not be linked, guarded or cleaned up. Routes
- * are now declarative, lazily imported, permission-aware and given a proper
- * lifecycle (render -> mount -> destroy).
- *
- * A page module exports a default object:
- *   { async render(ctx) -> html, mount(ctx) -> optional cleanup fn }
- */
+
+
 import { auth } from "./auth.js";
 import { ApiError } from "./apiError.js";
 import { loadingState, errorState, unauthorizedState } from "../components/states.js";
@@ -65,7 +56,7 @@ export function createRouter({ routes, outlet, loginUrl = "login.php", onNavigat
       const page = module.default ?? module;
       const html = await page.render(ctx);
 
-      if (token !== renderToken) return; // a newer navigation won the race
+      if (token !== renderToken) return; 
       outlet.innerHTML = html;
       cleanup = page.mount?.(ctx) ?? null;
     } catch (error) {

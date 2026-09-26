@@ -1,19 +1,5 @@
 <?php
 
-/**
- * Real backend for the Students page in the main app: full CRUD.
- *
- * One file, branching on the HTTP method — the same resource the frontend
- * already expected (GET list / GET one / POST create / PUT update / DELETE),
- * just addressed with ?id=... instead of a /students/{id} path, since this
- * project has no URL router.
- *
- * MySQLi connection + prepared statements throughout, matching the course
- * slides (Week 2-3 "Basic Prepared Statements", Week 6-7 "Prepared
- * Statements", "Filtering Results with WHERE", "Sorting with ORDER BY",
- * "Limiting Results with LIMIT").
- */
-
 require __DIR__ . '/../../backend/config/database.php';
 require __DIR__ . '/../../backend/classes/Student.php';
 require __DIR__ . '/../../backend/classes/DuplicateStudentException.php';
@@ -33,9 +19,6 @@ function sendJson($success, $data, $message, $errors, $statusCode, $meta = null)
     exit;
 }
 
-/** Checks a phone number is exactly 11 digits, ignoring the spaces the
- *  frontend groups them with (e.g. "0922 289 8622"). Character-by-character,
- *  no preg_match — not covered in the course material. */
 function isValidPhoneNumber($value)
 {
     $digitCount = 0;
@@ -53,8 +36,6 @@ function isValidPhoneNumber($value)
     return $digitCount === 11;
 }
 
-/** Turns one database row into a Student (holding a Program) and shapes it
- *  the same way the API has always responded. */
 function shapeStudent($row)
 {
     $program = new Program((int) $row['program_id'], $row['program']);
@@ -80,7 +61,6 @@ function shapeStudent($row)
 $conn = getDbConnection();
 $method = $_SERVER['REQUEST_METHOD'];
 
-// ---------------------------------------------------------------- READ ----
 if ($method === 'GET') {
     $id = trim($_GET['id'] ?? '');
 
@@ -107,8 +87,7 @@ if ($method === 'GET') {
         sendJson(true, $studentData, 'Student retrieved.', null, 200);
     }
 
-    // No id: this is the listing, with search/filter/sort/pagination —
-    // WHERE, ORDER BY and LIMIT, all built from bound parameters.
+    
     $search   = trim($_GET['search'] ?? '');
     $program  = trim($_GET['program'] ?? '');
     $year     = trim($_GET['year'] ?? '');
@@ -123,15 +102,13 @@ if ($method === 'GET') {
     $types = '';
 
     if ($search !== '') {
-        // Split the typed search into separate words, so "Juan Dela Cruz"
-        // still matches even though no single column holds that whole
-        // string — each word just has to appear somewhere in the name
-        // (first, middle, or last), and every word has to be found.
+
+        
+        
         $words = array_filter(explode(' ', $search));
 
-        // Params must be pushed in the same left-to-right order the ?
-        // placeholders will appear in below: student_id, email, then
-        // each word's name group.
+        
+        
         $like = "%$search%";
         array_push($params, $like, $like);
         $types .= 'ss';
@@ -165,9 +142,8 @@ if ($method === 'GET') {
 
     $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
 
-    // A column name can't be sent through a `?` placeholder the way a value
-    // can, so instead the requested sort is matched against a fixed list of
-    // safe, hardcoded ORDER BY clauses — never the raw query string itself.
+    
+    
     switch ($sort) {
         case 'oldest_first':
             $orderBySql = 's.created_at ASC';
@@ -223,7 +199,6 @@ if ($method === 'GET') {
     ]);
 }
 
-// -------------------------------------------------------------- UPDATE ----
 if ($method === 'PUT') {
     $id = trim($_GET['id'] ?? '');
     if ($id === '') {
@@ -292,7 +267,6 @@ if ($method === 'PUT') {
     sendJson(true, ['id' => $id], "Student \"$id\" updated successfully.", null, 200);
 }
 
-// -------------------------------------------------------------- DELETE ----
 if ($method === 'DELETE') {
     $id = trim($_GET['id'] ?? '');
     if ($id === '') {
@@ -306,9 +280,8 @@ if ($method === 'DELETE') {
         sendJson(false, null, "Student \"$id\" was not found.", null, 404);
     }
 
-    // ON DELETE CASCADE (set up when the related tables were created) removes
-    // the matching student_personal_details and student_emergency_contacts
-    // rows automatically — no extra queries needed here.
+    
+    
     $deleteStmt = $conn->prepare('DELETE FROM students WHERE student_id = ?');
     $deleteStmt->bind_param('s', $id);
     $deleteStmt->execute();
@@ -316,13 +289,10 @@ if ($method === 'DELETE') {
     sendJson(true, null, "Student \"$id\" was deleted.", null, 200);
 }
 
-// -------------------------------------------------------------- CREATE ----
 if ($method !== 'POST') {
     sendJson(false, null, 'Method not allowed.', null, 405);
 }
 
-// The JS app sends a JSON body, not a normal form post, so it is read from
-// php://input and decoded instead of using $_POST.
 $body = json_decode(file_get_contents('php://input'), true);
 if (!is_array($body)) {
     $body = [];
@@ -349,18 +319,14 @@ $emergencyName         = trim($emergencyContact['name'] ?? '');
 $emergencyRelationship = trim($emergencyContact['relationship'] ?? '');
 $emergencyNumber       = trim($emergencyContact['number'] ?? '');
 
-// The frontend fills a blank phone number with the placeholder text "Not
-// provided" — treat that the same as blank when deciding what to store.
 if ($contact == 'Not provided') {
     $contact = '';
 }
 
-// The frontend fills a blank gender with "Not specified" — same idea.
 if ($gender == 'Not specified') {
     $gender = '';
 }
 
-// An empty date string is not a valid DATE value in MySQL — store NULL instead.
 $dateOfBirthValue = $dateOfBirth != '' ? $dateOfBirth : null;
 
 $errors = [];
@@ -378,9 +344,6 @@ if ($address == '') {
     $errors[] = 'Address is required.';
 }
 
-// Program is required, and must be a real row in the programs table — this
-// is looked up in the database now instead of a hardcoded list, since
-// program_id is a real foreign key after the normalization pass.
 $programId = null;
 $programStmt = $conn->prepare('SELECT id FROM programs WHERE name = ?');
 $programStmt->bind_param('s', $program);
@@ -406,8 +369,6 @@ if (!$validYear) {
     $errors[] = 'Please choose a valid year level (1st-4th Year).';
 }
 
-// Status always has a value by this point (defaults to 'Active' above), so
-// this only ever fires if something other than a real option was sent.
 $validStatus = false;
 switch ($status) {
     case 'Active':
@@ -421,8 +382,6 @@ if (!$validStatus) {
     $errors[] = 'Please choose a valid student status.';
 }
 
-// Gender is required, so a blank value falls through every case below and is
-// correctly rejected without a separate blank check.
 $validGender = false;
 switch ($gender) {
     case 'Male':
@@ -435,8 +394,6 @@ if (!$validGender) {
     $errors[] = 'Please choose a valid gender.';
 }
 
-// Civil Status is required, so a blank value falls through every case below
-// and is correctly rejected without a separate blank check.
 $validCivilStatus = false;
 switch ($civilStatus) {
     case 'Single':
@@ -465,8 +422,6 @@ if ($emergencyNumber != '' && !isValidPhoneNumber($emergencyNumber)) {
     $errors[] = 'Emergency contact number must be exactly 11 digits.';
 }
 
-// Date of birth is required, and if given it should not be in the future.
-// ISO dates (YYYY-MM-DD) compare correctly as plain strings.
 if ($dateOfBirth == '') {
     $errors[] = 'Date of birth is required.';
 } elseif ($dateOfBirth > date('Y-m-d')) {
@@ -477,16 +432,10 @@ if (count($errors) > 0) {
     sendJson(false, null, implode(' ', $errors), null, 422);
 }
 
-// Emergency contact fields are optional — store NULL rather than an empty
-// string when nothing was given.
 $emergencyNameValue         = $emergencyName != '' ? $emergencyName : null;
 $emergencyRelationshipValue = $emergencyRelationship != '' ? $emergencyRelationship : null;
 $emergencyNumberValue       = $emergencyNumber != '' ? $emergencyNumber : null;
 
-// This is the one critical operation guarded with a custom, thrown exception
-// (Week 4-5 "Exception Handling"): registering a student under an ID that's
-// already taken. The check runs first, before anything touches the database
-// for real, and a DuplicateStudentException stops the whole operation cold.
 try {
     $checkStmt = $conn->prepare('SELECT student_id FROM students WHERE student_id = ?');
     $checkStmt->bind_param('s', $studentId);
@@ -497,9 +446,8 @@ try {
         throw new DuplicateStudentException("A student with ID \"$studentId\" already exists.");
     }
 
-    // One student now spans 3 tables (students, student_personal_details,
-    // student_emergency_contacts), so all 3 inserts run as a single
-    // transaction: either every table gets its row, or none of them do.
+    
+    
     mysqli_begin_transaction($conn);
 
     $insertStudent = $conn->prepare(
@@ -547,9 +495,8 @@ try {
 
     mysqli_commit($conn);
 
-    // Built from the same Student/Person classes the rest of the API uses —
-    // getFullName() here instead of "$firstName $lastName" is what makes the
-    // success message actually include Middle Name and Suffix too.
+    
+    
     $newStudent = new Student(
         $studentId, $firstName, $middleName, $lastName, $suffix,
         $email, $contact, $address, new Program($programId, $program),

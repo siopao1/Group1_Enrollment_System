@@ -1,6 +1,5 @@
 import { escapeHtml } from "../core/dom.js";
 
-/** Renders `<thead>` + `<tbody>` with a colspan-aware empty row. */
 export function dataTable({ columns, rows, emptyHtml }) {
   const body = rows.length
     ? rows.join("")
@@ -12,7 +11,6 @@ export function dataTable({ columns, rows, emptyHtml }) {
 </table></div>`;
 }
 
-/** Search + filter toolbar above a table. */
 export function tableTools({ searchId, searchPlaceholder = "Search...", filters = "" }) {
   const search = searchId
     ? `<div class="search-box"><i class="icon icon-search"></i>
@@ -23,7 +21,6 @@ export function tableTools({ searchId, searchPlaceholder = "Search...", filters 
   return `<div class="table-tools">${search}<div class="filters">${filters}</div></div>`;
 }
 
-/** Row action buttons; `actions` is a list of { icon, title, attr }. */
 export function rowActions(actions) {
   return `<div class="row-actions">${actions
     .map(

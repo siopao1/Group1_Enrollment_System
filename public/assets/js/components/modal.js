@@ -1,10 +1,5 @@
-/**
- * Single modal controller.
- *
- * The old code re-queried `[data-close-modal]` across the whole document every
- * time a modal opened, which stacked listeners. Here the backdrop owns one
- * delegated listener for its lifetime.
- */
+
+
 import { qs, escapeHtml } from "../core/dom.js";
 
 let backdrop = null;
@@ -65,13 +60,6 @@ function ensureElements() {
   });
 }
 
-/**
- * @param {object} options
- * @param {string} options.title
- * @param {string} options.body   HTML string
- * @param {string} options.footer HTML string
- * @param {(root: HTMLElement) => void} [options.onMount] wire up buttons here
- */
 export function openModal({ title, body, footer = "", size = "wide", onMount, onClose }) {
   ensureElements();
   onCloseCallback = onClose ?? null;
@@ -109,7 +97,6 @@ export function closeModal() {
   onCloseCallback = null;
 }
 
-/** Convenience wrapper for destructive confirmations. */
 export function confirmModal({ title, message, confirmLabel = "Confirm", tone = "danger", onConfirm }) {
   openModal({
     title,

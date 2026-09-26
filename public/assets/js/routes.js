@@ -1,10 +1,5 @@
-/**
- * Route table.
- *
- * `load` uses dynamic import so a page module is only downloaded when it is
- * first visited. `permission` is checked by the router for the UI; the same
- * permission is checked again by PHP for the data.
- */
+
+
 import { PERMISSIONS as P } from "./config/roles.js";
 
 const dashboard = {

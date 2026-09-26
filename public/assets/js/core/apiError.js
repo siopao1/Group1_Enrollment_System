@@ -1,4 +1,4 @@
-/** Error thrown for any non-successful API envelope or transport failure. */
+
 export class ApiError extends Error {
   constructor(message, { status = 0, errors = null, endpoint = "" } = {}) {
     super(message || "The request could not be completed.");

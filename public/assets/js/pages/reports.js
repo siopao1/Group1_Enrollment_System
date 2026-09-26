@@ -1,10 +1,5 @@
-/**
- * Reports & Analytics.
- *
- * This is the module extended with Laravel (see laravel-module/). The page
- * talks to `reportService`, which points at `appConfig.reportsApiBaseUrl`, so
- * moving it between the native API and the Laravel app is a config change.
- */
+
+
 import { pageHeader } from "../components/pageHeader.js";
 import { field, selectField } from "../components/formFields.js";
 import { errorState } from "../components/states.js";

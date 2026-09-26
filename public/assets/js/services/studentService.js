@@ -1,7 +1,5 @@
-/**
- * Student use-cases: list with filters/pagination, create, update, delete.
- * Pages call this; they never talk to `apiClient` or shape query strings.
- */
+
+
 import { studentApi } from "../api/studentApi.js";
 import { appConfig } from "../config/app.config.js";
 import { validate, rules, firstError } from "../core/validator.js";
@@ -22,7 +20,6 @@ const createSchema = {
   emergencyNumber: [rules.phone],
 };
 
-/** Map raw form values to the payload shape the API expects. */
 export function toStudentPayload(values) {
   const name = [values.firstName, values.middleName, values.lastName, values.suffix]
     .map((part) => String(part || "").trim())
@@ -73,8 +70,7 @@ export const studentService = {
 
   async create(formValues) {
     const payload = toStudentPayload({ ...formValues, id: formValues.studentId });
-    // Validate the raw form input, not the payload: the payload substitutes
-    // defaults such as "Not provided", which are not valid phone numbers.
+
     const check = validate({ ...formValues, id: payload.id }, createSchema);
     if (!check.valid) throw new ApiError(firstError(check.errors), { status: 422, errors: check.errors });
 

@@ -1,4 +1,4 @@
-/** System preferences. */
+
 import { settingsApi } from "../api/settingsApi.js";
 
 export const settingsService = {

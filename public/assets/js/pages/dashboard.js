@@ -1,4 +1,4 @@
-/** Dashboard — overview figures plus the most recently registered students. */
+
 import { pageHeader } from "../components/pageHeader.js";
 import { statCard } from "../components/statCard.js";
 import { badge } from "../components/badge.js";
@@ -10,8 +10,6 @@ import { notify } from "../components/toast.js";
 import { dashboardService } from "../services/dashboardService.js";
 import { studentService } from "../services/studentService.js";
 
-// Same colors the .dot classes in charts.css already use, so the ring
-// matches the legend's colored dots exactly.
 const DONUT_TONE_COLORS = {
   "": "#c62828",
   blue: "#2f7fe0",
@@ -20,9 +18,6 @@ const DONUT_TONE_COLORS = {
   light: "#e7e4f7",
 };
 
-/** Builds a conic-gradient from the real per-program percentages, instead of
- *  a fixed set of slice sizes — this is what makes the ring actually change
- *  when the real data does. */
 function donutGradient(byProgram) {
   if (byProgram.length === 0) {
     return "#f0ece2";
@@ -32,8 +27,7 @@ function donutGradient(byProgram) {
   const stops = byProgram.map((row, index) => {
     const color = DONUT_TONE_COLORS[row.tone] || DONUT_TONE_COLORS[""];
     const start = cumulative;
-    // The last slice always closes at 100%, so rounding on individual shares
-    // (e.g. three 33% slices) never leaves a gap at the end of the ring.
+
     cumulative = index === byProgram.length - 1 ? 100 : cumulative + row.share;
     return `${color} ${start}% ${cumulative}%`;
   });

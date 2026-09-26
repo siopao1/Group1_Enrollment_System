@@ -1,4 +1,4 @@
-/** Student academic records: grades, units and standing. */
+
 import { pageHeader } from "../components/pageHeader.js";
 import { badge } from "../components/badge.js";
 import { initials } from "../components/avatar.js";

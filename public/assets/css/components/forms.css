@@ -1,4 +1,4 @@
-/* ---------- Form controls ---------- */
+
 .form-card {
   padding: 22px;
 }
@@ -46,10 +46,6 @@ textarea.input {
   border-top: 1px solid var(--border);
 }
 
-/* Explicit invalid-field highlight, applied by JS on a failed submit.
-   Browsers auto-style invalid text inputs but not <select> elements, so this
-   makes every field type (input, textarea, select) show the same clear
-   red highlight instead of leaving dropdowns with no visual indication. */
 .input.is-invalid,
 .select.is-invalid,
 textarea.is-invalid {

@@ -1,11 +1,10 @@
-/* ---------- Application shell ---------- */
+
 .app-shell {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-/* ---------- Mobile nav overlay ---------- */
 .overlay {
   display: none;
 }

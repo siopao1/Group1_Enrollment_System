@@ -1,21 +1,14 @@
-/**
- * Tiny DOM helpers. Replaces the ad-hoc `$` / `$$` globals of the old app.js.
- */
+
+
 export const qs = (selector, scope = document) => scope.querySelector(selector);
 export const qsa = (selector, scope = document) => [...scope.querySelectorAll(selector)];
 
-/** Attach a listener; returns an unsubscribe function. */
 export function on(target, type, handler, options) {
   if (!target) return () => {};
   target.addEventListener(type, handler, options);
   return () => target.removeEventListener(type, handler, options);
 }
 
-/**
- * Event delegation — one listener on a container instead of one listener per
- * row, which is what made the old `bindPage()` re-bind everything on every
- * render.
- */
 export function delegate(root, selector, type, handler) {
   const listener = (event) => {
     const match = event.target.closest(selector);
@@ -25,7 +18,6 @@ export function delegate(root, selector, type, handler) {
   return () => root.removeEventListener(type, listener);
 }
 
-/** Escape untrusted values before they are interpolated into HTML strings. */
 export function escapeHtml(value) {
   if (value === null || value === undefined) return "";
   return String(value)
@@ -36,16 +28,10 @@ export function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
-/** Read a form into a plain object. */
 export function formValues(form) {
   return Object.fromEntries(new FormData(form).entries());
 }
 
-/**
- * Live phone-number masking: strips anything that isn't a digit, caps the
- * input at 11 digits, and groups them as "0922 289 8622" while typing.
- * Returns an unsubscribe function, same as `on()`.
- */
 export function bindPhoneInput(input) {
   if (!input) return () => {};
   const reformat = () => {

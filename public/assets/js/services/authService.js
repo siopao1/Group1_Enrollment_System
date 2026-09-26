@@ -1,9 +1,5 @@
-/**
- * Sign-in orchestration.
- *
- * The service validates input, asks the API, and updates the client session
- * object. It never decides whether the credentials are correct.
- */
+
+
 import { authApi } from "../api/authApi.js";
 import { auth } from "../core/auth.js";
 import { validate, rules, firstError } from "../core/validator.js";
@@ -27,13 +23,11 @@ export const authService = {
     try {
       await authApi.logout();
     } finally {
-      // Clear locally even if the network call fails: the server session is
-      // short-lived and the UI must not keep pretending someone is signed in.
+
       auth.clearSession();
     }
   },
 
-  /** Re-hydrate the session from the server cookie on app start. */
   async restore() {
     try {
       const { data } = await authApi.session();

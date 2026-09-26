@@ -1,4 +1,4 @@
-/** Course offerings (a subject scheduled for a term, with an instructor/room). */
+
 import { apiClient } from "../core/apiClient.js";
 
 export const offeringApi = {

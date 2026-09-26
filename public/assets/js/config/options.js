@@ -1,11 +1,5 @@
-/**
- * Reference lists used by filters and forms.
- *
- * These are static while the catalog endpoints are being built; once
- * `/api/programs` and `/api/departments` exist, replace the arrays with a call
- * through `services/referenceService.js` — the consumers already treat them as
- * data rather than literals.
- */
+
+
 export const PROGRAMS = ["BS Information Technology", "BS Computer Science", "BS Information System"];
 
 export const YEAR_LEVELS = ["1st Year", "2nd Year", "3rd Year", "4th Year"];

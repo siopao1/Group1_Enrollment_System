@@ -1,14 +1,5 @@
-/**
- * TEMPORARY in-memory dataset.
- *
- * This file (and the rest of `mock/`) exists only until the PHP API is
- * available. Its shape deliberately matches `database/migrations/*.sql` so the
- * real API can drop in without touching any page, service or api module.
- *
- * To remove the mock layer:
- *   1. set `useMockApi: false` in js/config/app.config.js
- *   2. delete the js/mock folder and its import in js/main.js
- */
+
+
 export const mockDatabase = {
   users: [
     { id: 1, username: "admin", name: "Alex Domingo", role: "admin", email: "admin@university.edu" },
@@ -36,11 +27,9 @@ export const mockDatabase = {
     { id: "2026-00116", name: "Mark Villanueva", email: "mark.villanueva@email.com", program: "BS Computer Science", year: "2nd Year", contact: "0926 990 0011", status: "Pending", date: "Sept. 11, 2026", gender: "Male" },
   ],
 
-  // These 5 were fabricated sample records for pages that don't have a real
-  // backend yet (Subjects, Offerings, Enrollment, Academic Records). Left
-  // empty on purpose — the mock server still serves them, so those pages
-  // load normally and show a real "no records" empty state instead of fake
-  // data or a broken page.
+  
+
+  
   subjects: [],
 
   offerings: [],

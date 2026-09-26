@@ -1,4 +1,4 @@
-/** Dashboard figures. All aggregation happens server-side. */
+
 import { dashboardApi } from "../api/dashboardApi.js";
 
 export const dashboardService = {

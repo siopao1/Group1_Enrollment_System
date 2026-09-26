@@ -1,14 +1,5 @@
-/**
- * The single HTTP entry point of the frontend.
- *
- * Every `api/*.js` module goes through this client, so there is exactly one
- * place that knows about base URLs, headers, the JSON envelope and error
- * handling. No page or component should ever call `fetch()` directly.
- *
- * Expected response envelope (see docs/api.md):
- *   { "success": true,  "data": ..., "message": "...", "meta": {...} }
- *   { "success": false, "data": null, "message": "...", "errors": {...} }
- */
+
+
 import { appConfig } from "../config/app.config.js";
 import { ApiError } from "./apiError.js";
 import { storage } from "./storage.js";
@@ -24,7 +15,6 @@ export function getAuthToken() {
   return storage.get(TOKEN_KEY, null);
 }
 
-/** Set by mock/mockServer.js when `appConfig.useMockApi` is true. */
 let mockHandler = null;
 export function useMockTransport(handler) {
   mockHandler = handler;

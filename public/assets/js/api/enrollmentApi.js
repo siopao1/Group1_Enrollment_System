@@ -1,4 +1,4 @@
-/** Enrollment transactions. */
+
 import { apiClient } from "../core/apiClient.js";
 
 export const enrollmentApi = {

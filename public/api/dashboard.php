@@ -1,13 +1,5 @@
 <?php
 
-/**
- * Real backend for the Dashboard's student-based figures.
- *
- * Only computes what the real database actually has data for: student counts,
- * pending students, total programs, students by program, and students by
- * status. Same MySQLi + prepared statement approach as students.php.
- */
-
 require __DIR__ . '/../../backend/config/database.php';
 
 header('Content-Type: application/json');
@@ -30,7 +22,6 @@ $activeStudents = (int) $conn->query("SELECT COUNT(*) AS total FROM students WHE
 $pendingStudents = (int) $conn->query("SELECT COUNT(*) AS total FROM students WHERE status = 'Pending'")->fetch_assoc()['total'];
 $totalPrograms = (int) $conn->query('SELECT COUNT(*) AS total FROM programs')->fetch_assoc()['total'];
 
-// Students by program — GROUP BY, largest program first.
 $byProgram = [];
 $tones = ['', 'blue', 'gold', 'gray', 'light'];
 $programResult = $conn->query(
@@ -51,7 +42,6 @@ while ($row = $programResult->fetch_assoc()) {
     $toneIndex++;
 }
 
-// Students by status — GROUP BY, every status the system allows.
 $statusItems = [];
 $statusResult = $conn->query('SELECT status, COUNT(*) AS total FROM students GROUP BY status');
 while ($row = $statusResult->fetch_assoc()) {

@@ -1,4 +1,4 @@
-/** Subjects and course offerings — the academic catalog. */
+
 import { subjectApi } from "../api/subjectApi.js";
 import { offeringApi } from "../api/offeringApi.js";
 import { validate, rules, firstError } from "../core/validator.js";

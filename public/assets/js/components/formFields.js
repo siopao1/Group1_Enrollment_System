@@ -61,10 +61,6 @@ function normalise(options) {
   );
 }
 
-/**
- * Bare `<select>` for table toolbars (no label, optional fixed width) —
- * matches the filter controls in the original markup.
- */
 export function filterSelect({ name, options, placeholder, value = "", width = "" }) {
   const items = placeholder ? [{ value: "", label: placeholder }, ...normalise(options)] : normalise(options);
   return `<div class="select-wrap"${width ? ` style="width:${escapeHtml(width)}"` : ""}>

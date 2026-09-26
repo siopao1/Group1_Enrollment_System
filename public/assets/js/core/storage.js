@@ -1,9 +1,5 @@
-/**
- * Namespaced wrapper around Web Storage.
- *
- * Only UI state and the session reference belong here. Never store passwords,
- * API secrets or anything the backend must be able to trust.
- */
+
+
 import { appConfig } from "../config/app.config.js";
 
 function makeStore(backing) {
@@ -30,7 +26,7 @@ function makeStore(backing) {
       try {
         backing.removeItem(key(name));
       } catch {
-        /* storage unavailable — ignore */
+        
       }
     },
     clear() {
@@ -39,7 +35,7 @@ function makeStore(backing) {
           .filter((k) => k.startsWith(appConfig.storagePrefix))
           .forEach((k) => backing.removeItem(k));
       } catch {
-        /* ignore */
+        
       }
     },
   };

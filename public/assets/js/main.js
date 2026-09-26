@@ -1,9 +1,5 @@
-/**
- * Application entry point.
- *
- * Responsibilities: install the transport (mock or real), make sure somebody is
- * signed in, build the shell, then hand control to the router.
- */
+
+
 import { appConfig } from "./config/app.config.js";
 import { useMockTransport } from "./core/apiClient.js";
 import { auth } from "./core/auth.js";
@@ -76,7 +72,7 @@ function installSelectMenus() {
 
 async function boot() {
   installSelectMenus();
-  // TEMPORARY: remove this block (and the mock/ folder) once the PHP API runs.
+  
   if (appConfig.useMockApi) {
     const { mockTransport } = await import("./mock/mockServer.js");
     useMockTransport(mockTransport);

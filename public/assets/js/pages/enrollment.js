@@ -1,10 +1,5 @@
-/**
- * Enroll Student.
- *
- * The page owns UI state only; the selection and its totals live in
- * `enrollmentService.createSelection()` and the transaction itself is created
- * by the backend, which re-checks slots inside a DB transaction.
- */
+
+
 import { pageHeader } from "../components/pageHeader.js";
 import { badge } from "../components/badge.js";
 import { avatar } from "../components/avatar.js";
@@ -18,7 +13,6 @@ import { enrollmentService, createSelection } from "../services/enrollmentServic
 
 const COLUMNS = ["Subject Code", "Subject", "Instructor", "Schedule", "Units", "Slots", "Action"];
 
-/** Filled by render() and read by mount(), so the list is fetched once. */
 let loadedOfferings = [];
 
 function offeringRow(offering, selected) {

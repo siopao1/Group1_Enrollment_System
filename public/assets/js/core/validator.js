@@ -1,9 +1,5 @@
-/**
- * Client-side validation — for fast feedback only.
- *
- * The PHP layer runs the same rules again (app/Core/Validator.php) because a
- * browser check can be bypassed trivially.
- */
+
+
 export const rules = {
   required: (value) => (String(value ?? "").trim() !== "" ? null : "This field is required."),
   email: (value) =>
@@ -20,11 +16,6 @@ export const rules = {
     !value || value <= new Date().toISOString().slice(0, 10) ? null : "Date of birth cannot be in the future.",
 };
 
-/**
- * @param {object} values
- * @param {Record<string, Function[]>} schema
- * @returns {{ valid: boolean, errors: Record<string, string> }}
- */
 export function validate(values, schema) {
   const errors = {};
 
@@ -41,7 +32,6 @@ export function validate(values, schema) {
   return { valid: Object.keys(errors).length === 0, errors };
 }
 
-/** First error message of a validation result, for toast display. */
 export function firstError(errors) {
   const [message] = Object.values(errors || {});
   return message || "Please complete the required fields.";

@@ -1,4 +1,4 @@
-/** Subject catalog resource. */
+
 import { apiClient } from "../core/apiClient.js";
 
 export const subjectApi = {

@@ -1,6 +1,5 @@
 <?php
 
-/** A program a student can be enrolled in (e.g. "BS Computer Science"). */
 class Program
 {
     private int $id;

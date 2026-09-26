@@ -1,4 +1,4 @@
-/* ---------- Generic cards ---------- */
+
 .grid-2 {
   display: grid;
   grid-template-columns: 1.65fr 1fr;

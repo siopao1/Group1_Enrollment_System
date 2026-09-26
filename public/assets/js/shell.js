@@ -1,10 +1,5 @@
-/**
- * Application shell: primary navigation, topbar and global search.
- *
- * The nav is rendered from `config/navigation.js` and filtered by the signed-in
- * role, so a Faculty account simply never sees Registrar-only entries. The
- * backend still refuses those endpoints independently.
- */
+
+
 import { navigation } from "./config/navigation.js";
 import { auth } from "./core/auth.js";
 import { qs, qsa, on, escapeHtml } from "./core/dom.js";
@@ -50,7 +45,6 @@ export function createShell({ navigate }) {
     menuButton.setAttribute("aria-expanded", "false");
   }
 
-  /** Called by the router after every navigation. */
   function setActive(route) {
     qsa(".nav-item", navPanel).forEach((button) =>
       button.classList.toggle("active", button.dataset.name === (route.name ?? route.path))

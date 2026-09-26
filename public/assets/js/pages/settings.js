@@ -1,4 +1,4 @@
-/** System preferences and the account/access panel. */
+
 import { pageHeader } from "../components/pageHeader.js";
 import { selectField, infoItem } from "../components/formFields.js";
 import { notify } from "../components/toast.js";

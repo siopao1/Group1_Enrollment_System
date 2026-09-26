@@ -1,9 +1,5 @@
-/**
- * Student resource — full CRUD, all wired to the real PHP + MySQL backend
- * (public/api/students.php) instead of the mock. Every other resource in the
- * app (subjects, offerings, dashboard, etc.) still goes through apiClient,
- * which the mock intercepts, so nothing else is affected.
- */
+
+
 import { apiClient } from "../core/apiClient.js";
 import { ApiError } from "../core/apiError.js";
 
@@ -47,7 +43,7 @@ export const studentApi = {
   create: (payload) => realRequest("POST", "/api/students.php", payload),
   update: (id, payload) => realRequest("PUT", `/api/students.php?id=${encodeURIComponent(id)}`, payload),
   remove: (id) => realRequest("DELETE", `/api/students.php?id=${encodeURIComponent(id)}`),
-  // Not part of Requirement 3's scope — left on the mock for now.
+  
   academicRecord: (id) => apiClient.get(`/students/${encodeURIComponent(id)}/academic-record`),
 };
 

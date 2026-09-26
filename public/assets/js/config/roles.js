@@ -1,11 +1,5 @@
-/**
- * Roles and UI permissions.
- *
- * IMPORTANT: this map only decides what the interface *shows*. It is not a
- * security boundary. Every protected operation is authorised again by PHP
- * (see app/Middleware/RoleMiddleware.php) because anything in this file can be
- * edited by the user in their own browser.
- */
+
+
 export const ROLES = Object.freeze({
   ADMIN: "admin",
   REGISTRAR: "registrar",
@@ -18,7 +12,6 @@ export const ROLE_LABELS = Object.freeze({
   [ROLES.FACULTY]: "Faculty",
 });
 
-/** Permission identifiers used by routes, navigation and page modules. */
 export const PERMISSIONS = Object.freeze({
   DASHBOARD_VIEW: "dashboard.view",
   STUDENTS_VIEW: "students.view",
@@ -36,7 +29,6 @@ export const PERMISSIONS = Object.freeze({
 
 const P = PERMISSIONS;
 
-/** Mirror of config/auth.php on the PHP side — keep both in sync. */
 export const ROLE_PERMISSIONS = Object.freeze({
   [ROLES.ADMIN]: Object.values(P),
   [ROLES.REGISTRAR]: [

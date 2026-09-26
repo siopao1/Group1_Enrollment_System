@@ -1,4 +1,4 @@
-/** Reports module — served by the Laravel application (see laravel-module/). */
+
 import { reportApi } from "../api/reportApi.js";
 
 export const reportService = {

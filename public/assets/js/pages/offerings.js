@@ -1,4 +1,4 @@
-/** Course offerings — subjects scheduled for a term. */
+
 import { pageHeader } from "../components/pageHeader.js";
 import { badge } from "../components/badge.js";
 import { dataTable, tableTools, rowActions } from "../components/table.js";
