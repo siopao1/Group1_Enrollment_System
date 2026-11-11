@@ -28,7 +28,7 @@ export function createShell({ navigate }) {
 
   function renderNav() {
     navPanel.innerHTML = `<div class="drawer-brand">
-      <div class="brand-mark">U</div>
+      <div class="brand-mark" aria-hidden="true"></div>
       <div><strong>UNIVERSITY</strong><span>Enrollment &amp; Records</span></div>
     </div>${navigation
       .filter((item) => auth.can(item.permission))

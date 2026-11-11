@@ -34,6 +34,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>@yield('title') — Enrollment &amp; Records</title>
+  <link rel="icon" href="{{ asset('favicon.ico') }}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -48,7 +49,7 @@
         <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="Open navigation" aria-expanded="false"><i class="icon icon-menu"></i></button>
 
         <div class="brand">
-          <div class="brand-mark">U</div>
+          <div class="brand-mark" aria-hidden="true"></div>
           <div>
             <strong>UNIVERSITY</strong>
             <span>Enrollment &amp; Records</span>
@@ -58,7 +59,7 @@
         <div class="nav-pill-wrap">
           <nav class="nav-pill" id="navPanel" aria-label="Primary">
             <div class="drawer-brand">
-              <div class="brand-mark">U</div>
+              <div class="brand-mark" aria-hidden="true"></div>
               <div><strong>UNIVERSITY</strong><span>Enrollment &amp; Records</span></div>
             </div>
             @foreach ($nav as $item)
