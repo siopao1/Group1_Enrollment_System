@@ -1,6 +1,7 @@
 <?php
 
 require __DIR__ . '/../../backend/config/database.php';
+require __DIR__ . '/../../backend/auth/api_guard.php';
 require __DIR__ . '/../../backend/classes/Student.php';
 require __DIR__ . '/../../backend/classes/DuplicateStudentException.php';
 
@@ -58,8 +59,22 @@ function shapeStudent($row)
     return $student->toArray();
 }
 
-$conn = getDbConnection();
 $method = $_SERVER['REQUEST_METHOD'];
+
+// Role-based access control, checked before touching the database:
+// every signed-in role can view, admin and registrar can add or edit,
+// and only admin can delete.
+$rolesAllowed = [
+    'GET'    => ['admin', 'registrar', 'faculty'],
+    'POST'   => ['admin', 'registrar'],
+    'PUT'    => ['admin', 'registrar'],
+    'DELETE' => ['admin'],
+];
+if (isset($rolesAllowed[$method])) {
+    requireApiRole($rolesAllowed[$method]);
+}
+
+$conn = getDbConnection();
 
 if ($method === 'GET') {
     $id = trim($_GET['id'] ?? '');

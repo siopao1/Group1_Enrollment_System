@@ -1,6 +1,7 @@
 <?php
 
 require __DIR__ . '/../../backend/config/database.php';
+require __DIR__ . '/../../backend/auth/api_guard.php';
 
 header('Content-Type: application/json');
 
@@ -14,6 +15,9 @@ function sendJson($success, $data, $message, $statusCode)
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     sendJson(false, null, 'This endpoint only accepts GET requests.', 405);
 }
+
+// Every signed-in role may view the dashboard.
+requireApiRole(['admin', 'registrar', 'faculty']);
 
 $conn = getDbConnection();
 
