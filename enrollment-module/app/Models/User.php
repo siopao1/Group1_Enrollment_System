@@ -2,48 +2,49 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
 
+/**
+ * An account from the main app's `users` table (backend/database/schema.sql).
+ * Both apps sign in with the same usernames and passwords: the password is
+ * stored in `password_hash` as bcrypt, which PHP's password_hash() and
+ * Laravel's Hash facade both read.
+ */
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    public const ROLES = ['admin', 'registrar', 'faculty'];
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
+    public const ROLE_LABELS = [
+        'admin' => 'Administrator',
+        'registrar' => 'Registrar',
+        'faculty' => 'Faculty',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    /** The table has created_at but no updated_at column. */
+    public const UPDATED_AT = null;
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    /** Tell Laravel's authentication which column holds the hash. */
+    protected $authPasswordName = 'password_hash';
+
+    /** The table has no remember_token column, so "remember me" is not used. */
+    protected $rememberTokenName = '';
+
+    protected $fillable = ['username', 'full_name', 'email', 'password_hash', 'role'];
+
+    protected $hidden = ['password_hash'];
+
+    public function hasRole(string ...$roles): bool
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return in_array($this->role, $roles, true);
+    }
+
+    public function roleLabel(): string
+    {
+        return self::ROLE_LABELS[$this->role] ?? $this->role;
+    }
+
+    public function enrollmentsCreated()
+    {
+        return $this->hasMany(Enrollment::class, 'enrolled_by');
     }
 }
