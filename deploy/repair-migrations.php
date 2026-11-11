@@ -30,10 +30,14 @@ $tables = [
     'subjects'            => 'create_subjects_table',
 ];
 
+// REPAIR_DROP_NONEMPTY=1 (set for one deploy only, by hand) also removes a
+// leftover table that already holds rows, e.g. demo data seeded into it.
+$dropNonEmpty = getenv('REPAIR_DROP_NONEMPTY') === '1';
+
 foreach ($tables as $table => $migration) {
     $recorded = DB::table('migrations')->where('migration', 'like', "%_{$migration}")->exists();
-    if (Schema::hasTable($table) && !$recorded && DB::table($table)->count() === 0) {
+    if (Schema::hasTable($table) && !$recorded && ($dropNonEmpty || DB::table($table)->count() === 0)) {
         Schema::drop($table);
-        echo "repair-migrations: removed the empty table {$table} left by a failed migration\n";
+        echo "repair-migrations: removed the table {$table} left by a failed migration\n";
     }
 }
