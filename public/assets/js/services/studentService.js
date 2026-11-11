@@ -87,13 +87,22 @@ export const studentService = {
     });
     if (!check.valid) throw new ApiError(firstError(check.errors), { status: 422, errors: check.errors });
 
-    const { data, message } = await studentApi.update(id, values);
+    // The edit dialog changes only some fields, so it sends a PATCH (partial update).
+    const { data, message } = await studentApi.patch(id, {
+      firstName: values.firstName,
+      middleName: values.middleName,
+      lastName: values.lastName,
+      suffix: values.suffix,
+      email: values.email,
+      contact: values.phone,
+      status: values.status,
+    });
     return { student: data, message };
   },
 
   async remove(id) {
-    const { message } = await studentApi.remove(id);
-    return message;
+    await studentApi.remove(id); // 204 No Content
+    return `Student "${id}" was deleted.`;
   },
 };
 

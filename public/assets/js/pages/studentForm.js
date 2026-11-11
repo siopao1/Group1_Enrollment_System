@@ -52,8 +52,18 @@ export function studentFormMarkup() {
 </form>`;
 }
 
+// The API reports errors by its field names; the form uses some different names.
+const FORM_FIELD_FOR = {
+  id: "studentId",
+  contact: "phone",
+  dateOfBirth: "dob",
+  "emergencyContact.name": "emergencyName",
+  "emergencyContact.relationship": "relationship",
+  "emergencyContact.number": "emergencyNumber",
+};
+
 function fieldNameFor(errorKey) {
-  return errorKey === "id" ? "studentId" : errorKey;
+  return FORM_FIELD_FOR[errorKey] ?? errorKey;
 }
 
 function clearFieldErrors(form) {

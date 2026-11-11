@@ -25,13 +25,23 @@ async function realRequest(method, path, body) {
     window.location.href = "login.php";
   }
 
+  // 204 No Content (DELETE): success with no JSON body.
+  if (response.status === 204) {
+    return { data: null, message: "", meta: null };
+  }
+
   const envelope = await response.json().catch(() => null);
   if (!envelope || typeof envelope !== "object") {
     throw new ApiError("The server returned an unexpected response.", { status: response.status });
   }
 
   if (!envelope.success) {
-    throw new ApiError(envelope.message, { status: response.status, errors: envelope.errors || null });
+    // For 422 the server lists messages per field; show the first one.
+    const firstFieldError = envelope.errors ? Object.values(envelope.errors).flat()[0] : null;
+    throw new ApiError(firstFieldError || envelope.message, {
+      status: response.status,
+      errors: envelope.errors || null,
+    });
   }
 
   return { data: envelope.data, message: envelope.message, meta: envelope.meta || null };
@@ -47,13 +57,19 @@ function toQueryString(query) {
   return qs ? `?${qs}` : "";
 }
 
+// Relative URLs, so the app works at the server root or inside a subfolder.
+const BASE = "api/students";
+const one = (id) => `${BASE}/${encodeURIComponent(id)}`;
+
 export const studentApi = {
-  list: (query) => realRequest("GET", `/api/students.php${toQueryString(query)}`),
-  find: (id) => realRequest("GET", `/api/students.php?id=${encodeURIComponent(id)}`),
-  create: (payload) => realRequest("POST", "/api/students.php", payload),
-  update: (id, payload) => realRequest("PUT", `/api/students.php?id=${encodeURIComponent(id)}`, payload),
-  remove: (id) => realRequest("DELETE", `/api/students.php?id=${encodeURIComponent(id)}`),
-  
+  list: (query) => realRequest("GET", `${BASE}${toQueryString(query)}`),
+  find: (id) => realRequest("GET", one(id)),
+  create: (payload) => realRequest("POST", BASE, payload),
+  replace: (id, payload) => realRequest("PUT", one(id), payload),
+  patch: (id, payload) => realRequest("PATCH", one(id), payload),
+  remove: (id) => realRequest("DELETE", one(id)),
+
+  // Still served by the browser mock until the Laravel module (Phase 4).
   academicRecord: (id) => apiClient.get(`/students/${encodeURIComponent(id)}/academic-record`),
 };
 

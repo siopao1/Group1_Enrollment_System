@@ -17,6 +17,12 @@ require_once __DIR__ . '/Response.php';
 require_once __DIR__ . '/Request.php';
 require_once __DIR__ . '/Router.php';
 require_once __DIR__ . '/ApiAuth.php';
+require_once __DIR__ . '/../validators/StudentValidator.php';
+require_once __DIR__ . '/../repositories/StudentRepository.php';
+require_once __DIR__ . '/../repositories/DashboardRepository.php';
+require_once __DIR__ . '/controllers/AuthController.php';
+require_once __DIR__ . '/controllers/StudentController.php';
+require_once __DIR__ . '/controllers/DashboardController.php';
 
 /** One shared database connection per request. */
 function db(): mysqli

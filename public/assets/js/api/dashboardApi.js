@@ -5,7 +5,7 @@ import { ApiError } from "../core/apiError.js";
 async function summary() {
   let response;
   try {
-    response = await fetch("/api/dashboard.php", { credentials: "same-origin" });
+    response = await fetch("api/dashboard", { credentials: "same-origin" });
   } catch {
     throw new ApiError("Unable to reach the server. Check your connection.", { status: 0 });
   }
