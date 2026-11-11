@@ -30,7 +30,7 @@ navigation menus link to each other.
 | Final – Phase 3 | REST API with clean URLs, bearer tokens, Postman collection | Done |
 | Final – Phase 4 | Laravel module for subjects, course offerings and enrollments | Done |
 | Final – Phase 5 | Reports and analytics, real settings, dashboard term figures | Done |
-| Final – Phase 6 | Testing, documentation, deployment | Not started |
+| Final – Phase 6 | Testing, documentation, deployment | Done |
 
 **Everything runs against the real database:** sign-in and sign-out,
 admin-only user registration, the Dashboard, the Students screens (list,
@@ -78,11 +78,11 @@ data any more.
 > (it never drops a table), so re-running it is safe. Re-run it after pulling
 > Phase 5 to add the `settings` table.
 
-> **Using XAMPP's Apache instead:** put the project under `htdocs` and open
-> `http://localhost/<folder>/public/`. `public/api/.htaccess` routes the API
-> (Apache needs `mod_rewrite` and `AllowOverride All`). The frontend uses
-> relative URLs, so it works from a subfolder. This setup has not been tested
-> yet; the `php -S` command above has.
+> **Using XAMPP's Apache instead:** put the project under `htdocs`, set the
+> addresses in both `.env` files, and open `http://localhost/<folder>/`.
+> Step by step, with a checklist before real use:
+> **[docs/deployment.md](docs/deployment.md)**. Both setups pass the full
+> system test.
 
 ### Laravel module (`enrollment-module/`)
 
@@ -177,7 +177,16 @@ Group1_Enrollment_System/
 │   └── public/css/               copy of the main app's CSS + laravel.css
 ├── docs/
 │   ├── api.md                    REST API reference
+│   ├── architecture.md           architecture, ERD, use cases, data flow (diagrams/ = PNGs)
+│   ├── testing.md                test matrix: every test with expected and actual results
+│   ├── deployment.md             installing on XAMPP (built-in servers or Apache)
+│   ├── defense.md                demo script and Q&A preparation
 │   └── postman/                  Postman collection (import and run)
+├── tests/
+│   ├── system_test.php           60 end-to-end tests over HTTP (both apps)
+│   ├── run_postman.php           runs the Postman collection without Postman
+│   └── lib/Http.php              small HTTP client used by the tests
+├── .htaccess                     Apache: only the two public/ folders may be opened
 └── public/                       the web root
     ├── index.php                 app shell (sign-in required); JavaScript renders each screen
     ├── login.php                 sign-in form, processed by PHP
@@ -338,6 +347,20 @@ Full reference with request and response examples: **[docs/api.md](docs/api.md)*
 into Postman and click **Run**. It has 48 requests covering the success and
 failure cases of every endpoint. It cleans up after itself.
 
+## Testing
+
+Full results with expected and actual outcomes: **[docs/testing.md](docs/testing.md)**.
+
+| Suite | Command (from the project folder, both servers running) | Result |
+|---|---|---|
+| System test: sign-in, roles, CSRF, SQL injection, XSS, validation, API, integration, report accuracy | `php tests\system_test.php` | 60 / 60 |
+| Laravel feature tests: enrollment rules, access control, sign-in, relationships | `cd enrollment-module` then `php artisan test` | 30 / 30 |
+| Postman collection: every endpoint | Postman → *Run*, or `php tests\run_postman.php` | 48 / 48 |
+
+The tests leave your data as it was: the system test and Postman delete what
+they create, and the Laravel tests use a separate `enrollment_system_test`
+database.
+
 ## Roles
 
 | Action | Admin | Registrar | Faculty |
@@ -374,7 +397,8 @@ roles are listed under [Laravel module](#laravel-module).
 | Partial writes | A student's three tables are written in one transaction | `StudentRepository` |
 | Error details leaking | Any error becomes a generic JSON 500; details go to the server log only | `backend/api/bootstrap.php` |
 | Logout that leaves the session alive | POST-only logout clears data, expires the cookie, destroys the session | `logout.php`, `Auth::logout()` |
-| XSS | `htmlspecialchars()` in PHP pages; JavaScript screens render data through `escapeHtml()` (re-checked during Phase 6 testing) | PHP pages, `core/dom.js` |
+| XSS | `htmlspecialchars()` in PHP pages; JavaScript screens render data through `escapeHtml()`; Blade `{{ }}` in Laravel. Verified with `<script>` and `onerror` payloads (tests XSS-01/02, BRW-02) | PHP pages, `core/dom.js`, Blade views |
+| Exposed files on Apache | Root `.htaccess` refuses everything outside the two `public/` folders (`.env`, `backend/`, `.git/` → 403) | `.htaccess` |
 | Leaked credentials | Database settings in git-ignored `.env`; errors logged, not shown | `database.php` |
 | Laravel module | Eloquent for every query; `@csrf` on every form (419 without it); `role:` middleware on every route (403); sign-in limited to 5 attempts per minute; session regenerated on sign-in; POST-only logout; Blade `{{ }}` escapes output | `enrollment-module/` |
 | Overbooking a section | Seats checked inside a transaction with the chosen sections locked (`SELECT … FOR UPDATE`) | `EnrollmentService` |
@@ -396,7 +420,10 @@ and the main-app menu and redirect changes), the Phase 5 reports and settings
 (`ReportRepository`, `ReportService`, `ReportController`, `SettingsRepository`,
 `SettingsController`, `AcademicTerm`, the `settings` table, the dashboard term
 figures, and the Reports, Settings and dashboard JavaScript and CSS changes,
-including `core/http.js` and `core/settings.js`) and this README. The Laravel
+including `core/http.js` and `core/settings.js`), the Phase 6 tests
+(`tests/`, `enrollment-module/tests/`), the fixes they led to, the root
+`.htaccess`, the documents in `docs/` (`testing.md`, `architecture.md` and its
+diagrams, `deployment.md`, `defense.md`) and this README. The Laravel
 project skeleton itself comes from `composer create-project laravel/laravel`.
 The Phase 3 repository and validator reuse the SQL and validation rules from
 the team's midterm `students.php`. Every team member has reviewed this code and
