@@ -1,9 +1,9 @@
--- Fresh database for the Add Student feature.
+-- Database for the University Enrollment & Records System.
 -- Run once (command line or phpMyAdmin's SQL tab) to create the database
 -- and its tables. Matches the "Creation of the database" and "MySQL Create
 -- Table" patterns from the course slides.
 --
--- Normalized into 4 related tables instead of one wide students table:
+-- Student data — normalized into 4 related tables instead of one wide table:
 --   programs                     — lookup table, so a program name is
 --                                   stored once and referenced everywhere
 --                                   instead of repeated on every student.
@@ -13,15 +13,30 @@
 --                                   core row (one-to-one with students).
 --   student_emergency_contacts   — a distinct sub-concept (someone else's
 --                                   info), also one-to-one with students.
+--
+-- Security (final term):
+--   users                        — accounts that can sign in; passwords are
+--                                   stored only as password_hash() output.
+--   api_tokens                   — bearer tokens for the REST API; only the
+--                                   SHA-256 hash of each token is stored.
+--   login_attempts               — failed sign-ins, used for rate limiting.
+--
+-- Subjects, course offerings and enrollments are created by the Laravel
+-- module's migrations, not here.
+--
+-- Every table uses utf8mb4_unicode_ci (Laravel's default) so that foreign
+-- keys between these tables and the Laravel tables have matching collations.
+-- After importing this file, run:  php backend/database/seed_users.php
 
-CREATE DATABASE IF NOT EXISTS enrollment_system_min;
+CREATE DATABASE IF NOT EXISTS enrollment_system_min
+    CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 USE enrollment_system_min;
 
 CREATE TABLE IF NOT EXISTS programs (
     id   INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(80) NOT NULL UNIQUE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS students (
     student_id     VARCHAR(20)  PRIMARY KEY,
@@ -38,7 +53,7 @@ CREATE TABLE IF NOT EXISTS students (
     status         VARCHAR(20)  NOT NULL DEFAULT 'Active',
     created_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (program_id) REFERENCES programs(id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS student_personal_details (
     student_id    VARCHAR(20) PRIMARY KEY,
@@ -46,7 +61,7 @@ CREATE TABLE IF NOT EXISTS student_personal_details (
     gender        VARCHAR(20) NULL,
     civil_status  VARCHAR(20) NULL,
     FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS student_emergency_contacts (
     student_id   VARCHAR(20)  PRIMARY KEY,
@@ -54,7 +69,42 @@ CREATE TABLE IF NOT EXISTS student_emergency_contacts (
     relationship VARCHAR(50)  NULL,
     number       VARCHAR(30)  NULL,
     FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Accounts. The role is set by the server (seeder or an admin), never by
+-- the person signing up. VARCHAR(255) leaves room for future hash formats.
+CREATE TABLE IF NOT EXISTS users (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    username      VARCHAR(50)  NOT NULL UNIQUE,
+    full_name     VARCHAR(100) NOT NULL,
+    email         VARCHAR(120) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    role          ENUM('admin', 'registrar', 'faculty') NOT NULL DEFAULT 'faculty',
+    created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Bearer tokens for API clients such as Postman. The plain token is shown to
+-- the client once; only its SHA-256 hash is kept, so a leaked table cannot be
+-- used to sign in. Deleting a user deletes their tokens.
+CREATE TABLE IF NOT EXISTS api_tokens (
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    user_id    INT       NOT NULL,
+    token_hash CHAR(64)  NOT NULL UNIQUE,
+    expires_at DATETIME  NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Failed sign-in attempts. Too many recent rows for one username or IP
+-- address blocks further attempts for a while (brute-force protection).
+CREATE TABLE IF NOT EXISTS login_attempts (
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    username     VARCHAR(50) NOT NULL,
+    ip_address   VARCHAR(45) NOT NULL,
+    attempted_at TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_login_attempts_username (username, attempted_at),
+    INDEX idx_login_attempts_ip (ip_address, attempted_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT IGNORE INTO programs (name) VALUES
     ('BS Information Technology'),
