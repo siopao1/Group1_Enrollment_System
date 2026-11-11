@@ -29,19 +29,18 @@ navigation menus link to each other.
 | Final – Phase 2 | Registration, login, sessions, role-based access, CSRF, secure logout | Done |
 | Final – Phase 3 | REST API with clean URLs, bearer tokens, Postman collection | Done |
 | Final – Phase 4 | Laravel module for subjects, course offerings and enrollments | Done |
-| Final – Phase 5 | Enrollment report and analytics | Not started |
+| Final – Phase 5 | Reports and analytics, real settings, dashboard term figures | Done |
 | Final – Phase 6 | Testing, documentation, deployment | Not started |
 
-**What works against the real database today:** sign-in and sign-out,
+**Everything runs against the real database:** sign-in and sign-out,
 admin-only user registration, the Dashboard, the Students screens (list,
-search, filter, sort, paginate, add, edit, delete, view profile), and the REST
-API behind them (`/api/students`, `/api/dashboard`, `/api/auth`), plus the
-Laravel module's Subjects, Course Offerings, Enroll Student, Enrollment
-Records and Student Records pages. Each of these checks the signed-in user's
-role on the server.
-
-**Still on browser-only mock data:** Reports and the Settings preferences
-(Phase 5).
+search, filter, sort, paginate, add, edit, delete, view profile), Reports &
+Analytics (six reports with charts, CSV export and print), Settings, and the
+REST API behind them (`/api/students`, `/api/dashboard`, `/api/reports`,
+`/api/settings`, `/api/auth`), plus the Laravel module's Subjects, Course
+Offerings, Enroll Student, Enrollment Records and Student Records pages. Each
+of these checks the signed-in user's role on the server. No screen uses mock
+data any more.
 
 ## Technologies
 
@@ -74,6 +73,10 @@ role on the server.
    ```
    Then open <http://localhost:8000>. The last argument, `public/router.php`,
    is required: it sends `/api/...` URLs to the API.
+
+> **Updating an existing database:** `schema.sql` only adds what is missing
+> (it never drops a table), so re-running it is safe. Re-run it after pulling
+> Phase 5 to add the `settings` table.
 
 > **Using XAMPP's Apache instead:** put the project under `htdocs` and open
 > `http://localhost/<folder>/public/`. `public/api/.htaccess` routes the API
@@ -141,12 +144,15 @@ Group1_Enrollment_System/
 │   │   ├── ApiAuth.php           bearer tokens, or session + CSRF; 401 / 419 / 403
 │   │   ├── Request.php           path, query values, headers, JSON body (415 / 400)
 │   │   ├── Response.php          JSON envelope and status codes
-│   │   └── controllers/          AuthController, StudentController, DashboardController
+│   │   └── controllers/          Auth, Student, Dashboard, Report and Settings controllers
 │   ├── auth/
 │   │   └── Auth.php              sessions, login, rate limiting, roles, CSRF, logout
-│   ├── repositories/             StudentRepository, DashboardRepository (all SQL)
+│   ├── repositories/             Student, Dashboard, Report and Settings repositories (all SQL)
+│   ├── services/
+│   │   └── ReportService.php     report catalog; builds each report from the query results
 │   ├── validators/               StudentValidator (POST / PUT / PATCH rules)
 │   ├── classes/
+│   │   ├── AcademicTerm.php      allowed academic years, semesters, year levels
 │   │   ├── Person.php            base class: name fields, getFullName()
 │   │   ├── Student.php           extends Person; student data + toArray()
 │   │   ├── Program.php           academic program
@@ -185,12 +191,11 @@ Group1_Enrollment_System/
         ├── css/                  base/, layout/, components/, pages/
         └── js/
             ├── config/           app settings, roles, navigation, options
-            ├── core/             API client, auth state, router, validation
+            ├── core/             http.js (API requests), auth state, settings, router, validation
             ├── api/              one module per API resource
             ├── services/         logic the pages call
             ├── components/       reusable UI (table, modal, toast, …)
-            ├── pages/            one module per screen
-            └── mock/             temporary fake API for Reports and Settings
+            └── pages/            one module per screen
 ```
 
 ## Database
@@ -207,6 +212,7 @@ Group1_Enrollment_System/
 | `users` | Sign-in accounts with hashed passwords and a role | — |
 | `api_tokens` | SHA-256 hashes of API bearer tokens, with expiry | `user_id` → `users.id` |
 | `login_attempts` | Failed sign-ins, used for rate limiting | — |
+| `settings` | System preferences: default academic year and semester, rows per page | `updated_by` → `users.id` |
 
 The Laravel module's migrations (`enrollment-module/database/migrations`) add:
 
@@ -268,6 +274,34 @@ Other safeguards:
   different ports would need a single sign-on setup, which is outside this
   project's scope.
 
+## Reports and analytics
+
+The **Reports & Analytics** page (admin and registrar) generates six reports
+from live data. Each report has summary figures, bar charts and tables, and can
+be exported as CSV or printed (print shows only the report, in landscape).
+
+| Report | What it answers |
+|---|---|
+| Enrollment Summary | How many enrollments are pending, confirmed, active, completed or dropped; enrolled students, subject loads and units per year level |
+| Enrollment by Program | Enrolled and dropped students, units and share of enrollment per program |
+| Enrollment by Semester | Enrollment and drop rate in every semester of the academic year(s) |
+| Section Utilization | Seats taken in every course offering; full sections and sections under 25% filled |
+| Student Demographics | Students by gender, age group, year level, program, civil status and record status |
+| Student Master List | Every student with program, year level, status and their enrollment in the term |
+
+Filters: academic year, semester, program and year level (each report uses
+the ones listed on its card). They start at the default term from **Settings**.
+An enrollment counts as enrolled unless its status is Dropped. The SQL is in
+`backend/repositories/ReportRepository.php` (JOIN and GROUP BY, prepared
+statements), and `backend/services/ReportService.php` assembles each report.
+
+The **Dashboard** also shows two current-term cards: students enrolled this
+term and sections at full capacity.
+
+**Settings** (admin only) are stored in the `settings` table: the default
+academic year and semester (used by the Reports filters, the Dashboard's term
+cards and new student records) and the rows per page on the Students list.
+
 ## REST API
 
 Full reference with request and response examples: **[docs/api.md](docs/api.md)**.
@@ -284,6 +318,10 @@ Full reference with request and response examples: **[docs/api.md](docs/api.md)*
 | PATCH | `/api/students/{id}` (partial update) | admin, registrar | 200 | 400, 401, 403, 404, 415, 422 |
 | DELETE | `/api/students/{id}` | admin | 204 | 401, 403, 404 |
 | GET | `/api/dashboard` | all | 200 | 401 |
+| GET | `/api/reports` (catalog) | admin, registrar | 200 | 401, 403 |
+| GET | `/api/reports/{type}?academic_year=&semester=&program=&year_level=&format=` | admin, registrar | 200 (JSON or CSV) | 401, 403, 404, 422 |
+| GET | `/api/settings` | all | 200 | 401 |
+| PUT | `/api/settings` | admin | 200 | 400, 401, 403, 415, 422 |
 
 - **Response envelope:** every JSON response is
   `{ "success", "data", "message", "errors", "meta" }`, and 422 responses list
@@ -296,7 +334,7 @@ Full reference with request and response examples: **[docs/api.md](docs/api.md)*
 
 **Testing:** import
 [`docs/postman/Group1_Enrollment_API.postman_collection.json`](docs/postman/Group1_Enrollment_API.postman_collection.json)
-into Postman and click **Run**. It has 37 requests covering the success and
+into Postman and click **Run**. It has 48 requests covering the success and
 failure cases of every endpoint. It cleans up after itself.
 
 ## Roles
@@ -306,6 +344,8 @@ failure cases of every endpoint. It cleans up after itself.
 | View dashboard and students | ✓ | ✓ | ✓ |
 | Add or edit students | ✓ | ✓ | ✗ (403) |
 | Delete students | ✓ | ✗ (403) | ✗ (403) |
+| Reports & Analytics, CSV export | ✓ | ✓ | ✗ (403) |
+| Change settings | ✓ | ✗ (403) | ✗ (403) |
 | Create user accounts (`register.php`) | ✓ | ✗ (403) | ✗ (403) |
 
 Roles are stored in `users.role` and set only by the seeder or an
@@ -337,6 +377,8 @@ roles are listed under [Laravel module](#laravel-module).
 | Leaked credentials | Database settings in git-ignored `.env`; errors logged, not shown | `database.php` |
 | Laravel module | Eloquent for every query; `@csrf` on every form (419 without it); `role:` middleware on every route (403); sign-in limited to 5 attempts per minute; session regenerated on sign-in; POST-only logout; Blade `{{ }}` escapes output | `enrollment-module/` |
 | Overbooking a section | Seats checked inside a transaction with the chosen sections locked (`SELECT … FOR UPDATE`) | `EnrollmentService` |
+| Report filter tampering | Every filter checked against an allowed list (422); values only ever bound as prepared-statement parameters | `ReportController`, `ReportRepository` |
+| Formula injection in CSV exports | Text cells starting with `=`, `+`, `-` or `@` are prefixed with `'` | `Response::csv()` |
 
 ## AI and third-party code disclosure
 
@@ -349,7 +391,11 @@ REST API (everything under `backend/api/`, `backend/repositories/`,
 JavaScript changes), the Postman collection, `docs/api.md`, the Phase 4
 Laravel module (the migrations, seeders, models, controllers, form requests,
 middleware, service, Blade views and `laravel.css` in `enrollment-module/`,
-and the main-app menu and redirect changes) and this README. The Laravel
+and the main-app menu and redirect changes), the Phase 5 reports and settings
+(`ReportRepository`, `ReportService`, `ReportController`, `SettingsRepository`,
+`SettingsController`, `AcademicTerm`, the `settings` table, the dashboard term
+figures, and the Reports, Settings and dashboard JavaScript and CSS changes,
+including `core/http.js` and `core/settings.js`) and this README. The Laravel
 project skeleton itself comes from `composer create-project laravel/laravel`.
 The Phase 3 repository and validator reuse the SQL and validation rules from
 the team's midterm `students.php`. Every team member has reviewed this code and
