@@ -1,3 +1,49 @@
+<?php
+
+require __DIR__ . '/../backend/config/database.php';
+require __DIR__ . '/../backend/auth/Auth.php';
+
+Auth::start();
+
+if (Auth::user() !== null) {
+    header('Location: index.php');
+    exit;
+}
+
+$error = '';
+$username = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim((string) ($_POST['username'] ?? ''));
+    $password = (string) ($_POST['password'] ?? '');
+
+    if (!Auth::verifyCsrf($_POST['csrf'] ?? null)) {
+        $error = 'Your session expired. Please try again.';
+    } elseif ($username === '' || $password === '') {
+        $error = 'Enter your username and password.';
+    } else {
+        $conn = getDbConnection();
+
+        if (Auth::tooManyAttempts($conn, $username)) {
+            http_response_code(429);
+            $error = 'Too many failed sign-in attempts. Please wait 15 minutes and try again.';
+        } else {
+            $user = Auth::attempt($conn, $username, $password);
+
+            if ($user !== null) {
+                Auth::login($user);
+                header('Location: index.php');
+                exit;
+            }
+
+            // One message for both cases, so attackers cannot tell which usernames exist.
+            $error = 'Invalid username or password.';
+        }
+    }
+}
+
+$csrf = Auth::csrfToken();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,29 +70,32 @@
       <h1>Sign in</h1>
       <p class="auth-lead">Use the account issued by the registrar's office.</p>
 
-      <form id="loginForm" novalidate>
+      <form method="post" action="login.php" novalidate>
+        <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
+
         <div class="field">
           <label for="username">Username</label>
-          <input class="input" id="username" name="username" autocomplete="username" required>
+          <input class="input" id="username" name="username" autocomplete="username" required maxlength="50"
+                 value="<?= htmlspecialchars($username, ENT_QUOTES, 'UTF-8') ?>" <?= $username === '' ? 'autofocus' : '' ?>>
         </div>
         <div class="field">
           <label for="password">Password</label>
-          <input class="input" id="password" name="password" type="password" autocomplete="current-password" required>
+          <input class="input" id="password" name="password" type="password" autocomplete="current-password" required
+                 <?= $username !== '' ? 'autofocus' : '' ?>>
         </div>
 
-        <p class="auth-error" id="loginError" role="alert"></p>
+        <?php if ($error !== ''): ?>
+          <p class="auth-error show" role="alert"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></p>
+        <?php endif; ?>
 
         <button class="btn btn-primary auth-submit" type="submit">Sign In</button>
       </form>
 
       <p class="auth-note">
-        Demo accounts while the database is being set up:
-        <strong>admin</strong>, <strong>registrar</strong> or <strong>faculty</strong>,
-        password <strong>password</strong>.
+        Accounts are created by an administrator. Contact the registrar's office
+        if you need access.
       </p>
     </div>
   </main>
-
-  <script type="module" src="assets/js/login.js"></script>
 </body>
 </html>
