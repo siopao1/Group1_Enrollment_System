@@ -149,6 +149,17 @@ final class Auth
         return is_string($token) && $token !== '' && hash_equals(self::csrfToken(), $token);
     }
 
+    /**
+     * Sets the "419 Page Expired" status used for a missing or wrong CSRF
+     * token. 419 is not a standard HTTP code, so the reason phrase is sent
+     * too; without it Apache cannot build the status line and answers 500.
+     */
+    public static function sendCsrfFailedStatus(): void
+    {
+        $protocol = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1';
+        header("$protocol 419 Page Expired", true, 419);
+    }
+
     public static function logout(): void
     {
         $_SESSION = [];

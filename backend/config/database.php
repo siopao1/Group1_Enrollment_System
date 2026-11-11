@@ -10,8 +10,22 @@ function envValue(string $key, $default = null)
     static $vars = null;
 
     if ($vars === null) {
+        // Same format as Laravel's .env: KEY=value lines, # starts a comment
+        // line, values may be wrapped in "double" or 'single' quotes.
+        $vars = [];
         $file = __DIR__ . '/../../.env';
-        $vars = is_file($file) ? (parse_ini_file($file) ?: []) : [];
+        $lines = is_file($file) ? file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) : [];
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if ($line === '' || $line[0] === '#' || !str_contains($line, '=')) {
+                continue;
+            }
+            [$name, $value] = array_map('trim', explode('=', $line, 2));
+            if (strlen($value) >= 2 && ($value[0] === '"' || $value[0] === "'") && $value[-1] === $value[0]) {
+                $value = substr($value, 1, -1);
+            }
+            $vars[$name] = $value;
+        }
     }
 
     return $vars[$key] ?? $default;

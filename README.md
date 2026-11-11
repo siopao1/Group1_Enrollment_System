@@ -109,8 +109,9 @@ Keep the main app running on port 8000 at the same time.
 - `.env.example` is already set to the `enrollment_system_min` database on
   XAMPP's MariaDB (`DB_CONNECTION=mariadb`). Change the `DB_*` values if yours
   differ, and `MAIN_APP_URL` if the main app is not on port 8000.
-- If the module runs on a different address, also change `laravelUrl` in
-  `public/assets/js/config/app.config.js` so the main app's menu links to it.
+- If the module runs on a different address, also change `LARAVEL_URL` in the
+  main app's `.env` so its menu links to it. Running both apps on XAMPP's
+  Apache is described in [docs/deployment.md](docs/deployment.md).
 
 ## Demo accounts
 

@@ -12,7 +12,11 @@ final class Response
 {
     public static function json(int $status, array $body): never
     {
-        http_response_code($status);
+        if ($status === 419) {
+            Auth::sendCsrfFailedStatus(); // non-standard code: needs its reason phrase on Apache
+        } else {
+            http_response_code($status);
+        }
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode(
             $body,

@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 if (!Auth::verifyCsrf($token)) {
-    http_response_code(419);
+    Auth::sendCsrfFailedStatus();
     exit('Invalid or missing CSRF token. Refresh the page and try again.');
 }
 

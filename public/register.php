@@ -26,7 +26,7 @@ $created = isset($_GET['created']) ? (string) $_GET['created'] : '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!Auth::verifyCsrf($_POST['csrf'] ?? null)) {
-        http_response_code(419);
+        Auth::sendCsrfFailedStatus();
         exit('Invalid or missing CSRF token. Go back, refresh the page and try again.');
     }
 
