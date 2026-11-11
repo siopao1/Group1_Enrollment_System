@@ -8,6 +8,8 @@ const TONES = {
   Pending: "warning",
   Dropped: "danger",
   Full: "danger",
+  Low: "warning",
+  Normal: "success",
   Inactive: "neutral",
 };
 

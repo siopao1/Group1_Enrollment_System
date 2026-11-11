@@ -1,13 +1,13 @@
+import { http, toQueryString } from "../core/http.js";
 
-
-import { apiClient } from "../core/apiClient.js";
-import { appConfig } from "../config/app.config.js";
-
-const options = { baseUrl: appConfig.reportsApiBaseUrl };
+// Admin and registrar only (the server answers 403 for faculty).
+const BASE = "api/reports";
 
 export const reportApi = {
-  catalog: () => apiClient.get("/reports", undefined, options),
-  generate: (type, filters) => apiClient.post(`/reports/${encodeURIComponent(type)}`, filters, options),
+  catalog: () => http.get(BASE),
+  generate: (type, filters) => http.get(`${BASE}/${encodeURIComponent(type)}`, filters),
+  // A plain link: the browser downloads the CSV with the session cookie.
+  csvUrl: (type, filters) => `${BASE}/${encodeURIComponent(type)}${toQueryString({ ...filters, format: "csv" })}`,
 };
 
 export default reportApi;
