@@ -175,13 +175,7 @@ Group1_Enrollment_System/
 │   ├── resources/views/          Blade pages (layout, subjects, offerings, enrollments, records)
 │   ├── routes/web.php            every page and the roles allowed on it
 │   └── public/css/               copy of the main app's CSS + laravel.css
-├── docs/
-│   ├── api.md                    REST API reference
-│   ├── architecture.md           architecture, ERD, use cases, data flow (diagrams/ = PNGs)
-│   ├── testing.md                test matrix: every test with expected and actual results
-│   ├── deployment.md             installing on XAMPP (built-in servers or Apache)
-│   ├── defense.md                demo script and Q&A preparation
-│   └── postman/                  Postman collection (import and run)
+├── postman/                      Postman collection (import and run)
 ├── tests/
 │   ├── system_test.php           60 end-to-end tests over HTTP (both apps)
 │   ├── run_postman.php           runs the Postman collection without Postman
@@ -343,7 +337,7 @@ Full reference with request and response examples: **[docs/api.md](docs/api.md)*
   own pages use their session cookie plus an `X-CSRF-Token` header.
 
 **Testing:** import
-[`docs/postman/Group1_Enrollment_API.postman_collection.json`](docs/postman/Group1_Enrollment_API.postman_collection.json)
+[`postman/Group1_Enrollment_API.postman_collection.json`](postman/Group1_Enrollment_API.postman_collection.json)
 into Postman and click **Run**. It has 48 requests covering the success and
 failure cases of every endpoint. It cleans up after itself.
 

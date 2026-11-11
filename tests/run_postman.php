@@ -2,9 +2,9 @@
 // Runs the Postman collection without Postman (a minimal stand-in for its Runner): executes each request in order,
 // substitutes {{variables}}, stores tokens/studentId like the collection's
 // scripts do, and compares the status code with the one the tests expect.
-// Usage: php tests/run_postman.php [docs/postman/Group1_Enrollment_API.postman_collection.json]
+// Usage: php tests/run_postman.php [postman/Group1_Enrollment_API.postman_collection.json]
 
-$c = json_decode(file_get_contents($argv[1] ?? __DIR__ . "/../docs/postman/Group1_Enrollment_API.postman_collection.json"), true, 512, JSON_THROW_ON_ERROR);
+$c = json_decode(file_get_contents($argv[1] ?? __DIR__ . "/../postman/Group1_Enrollment_API.postman_collection.json"), true, 512, JSON_THROW_ON_ERROR);
 $vars = [];
 foreach ($c['variable'] as $v) {
     $vars[$v['key']] = $v['value'];
