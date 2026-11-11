@@ -89,16 +89,16 @@
             <h1>@yield('title')</h1>
           </div>
         </div>
+        {{-- Same as the main app's top bar: search box + account button (opens the logout dialog). --}}
         <div class="topbar-actions">
-          <span class="module-tag" title="This section is built with Laravel">Laravel module</span>
-          <div class="profile-menu" aria-label="Signed-in user">
-            <div class="avatar">{{ Str::upper(Str::substr($user->full_name, 0, 1)) }}</div>
-            <span>{{ $user->full_name }} · {{ $user->roleLabel() }}</span>
-          </div>
-          <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button class="btn btn-small" type="submit"><i class="icon icon-log-out"></i>Log Out</button>
+          <form class="global-search" method="GET" action="{{ route('records.index') }}" role="search">
+            <i class="icon icon-search"></i>
+            <input id="globalSearch" name="q" placeholder="Search" aria-label="Search student records" autocomplete="off">
           </form>
+          <button class="profile-menu" id="profileMenu" type="button" aria-label="Account menu" aria-haspopup="dialog">
+            <div class="avatar">{{ collect(preg_split('/\s+/', trim($user->full_name)))->filter()->take(2)->map(fn ($part) => Str::upper(Str::substr($part, 0, 1)))->implode('') }}</div>
+            <span>{{ $user->roleLabel() }}</span><i class="icon icon-chevron-down"></i>
+          </button>
         </div>
       </header>
 
@@ -126,7 +126,49 @@
 
   <div class="overlay" id="overlay"></div>
 
+  {{-- Logout confirmation, the same dialog as the main app's (components/modal.css). --}}
+  <div class="modal-backdrop" id="logoutBackdrop" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
+    <div class="modal modal-host-confirm modal-host-logout" id="modal">
+      <div class="modal modal-confirm modal-confirm-logout">
+        <div class="modal-head">
+          <div class="modal-symbol"><i class="icon icon-log-out"></i></div>
+          <h3 id="logoutTitle">Logout Confirmation</h3>
+          <button class="icon-btn" type="button" data-close-modal aria-label="Close dialog"><i class="icon icon-x"></i></button>
+        </div>
+        <div class="modal-body"><p>Are you sure you want to log out of the {{ $user->roleLabel() }} session?</p></div>
+        <div class="modal-foot">
+          <button class="btn" type="button" data-close-modal>Cancel</button>
+          <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button class="btn btn-danger" type="submit">Log Out</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
+    // Account button → logout dialog; Ctrl+K → search (same as the main app).
+    (function () {
+      const backdrop = document.getElementById('logoutBackdrop');
+      const open = (show) => {
+        backdrop.classList.toggle('open', show);
+        document.body.classList.toggle('modal-open', show);
+        if (show) backdrop.querySelector('[data-close-modal]').focus();
+      };
+      document.getElementById('profileMenu').addEventListener('click', () => open(true));
+      backdrop.addEventListener('click', (event) => {
+        if (event.target === backdrop || event.target.closest('[data-close-modal]')) open(false);
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && backdrop.classList.contains('open')) open(false);
+        if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+          event.preventDefault();
+          document.getElementById('globalSearch').focus();
+        }
+      });
+    })();
+
     // Mobile menu toggle (same behavior as the main app's shell.js).
     (function () {
       const panel = document.getElementById('navPanel');
