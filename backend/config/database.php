@@ -1,17 +1,45 @@
 <?php
 
-function getDbConnection()
+/**
+ * Reads a setting from the .env file in the project root.
+ * Secrets such as the database password live there instead of in the code,
+ * so they never end up in the Git repository.
+ */
+function envValue(string $key, $default = null)
 {
-    $host = '127.0.0.1';
-    $username = 'root';
-    $password = '';
-    $database = 'enrollment_system_min';
+    static $vars = null;
 
-    $conn = mysqli_connect($host, $username, $password, $database);
-
-    if (!$conn) {
-        die('Connection failed: ' . mysqli_connect_error());
+    if ($vars === null) {
+        $file = __DIR__ . '/../../.env';
+        $vars = is_file($file) ? (parse_ini_file($file) ?: []) : [];
     }
 
-    return $conn;
+    return $vars[$key] ?? $default;
+}
+
+/**
+ * Opens a MySQLi connection using the values from .env.
+ * On failure the real reason is written to the server's error log and the
+ * visitor only sees a generic message, so no credentials or paths leak.
+ */
+function getDbConnection(): mysqli
+{
+    // Make MySQLi throw exceptions instead of silently returning false.
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+    try {
+        $conn = new mysqli(
+            envValue('DB_HOST', '127.0.0.1'),
+            envValue('DB_USERNAME', 'root'),
+            envValue('DB_PASSWORD', ''),
+            envValue('DB_DATABASE', 'enrollment_system_min')
+        );
+        $conn->set_charset('utf8mb4');
+
+        return $conn;
+    } catch (mysqli_sql_exception $e) {
+        error_log('[DB] Connection failed: ' . $e->getMessage());
+        http_response_code(500);
+        exit('Database connection failed. Please try again later.');
+    }
 }
