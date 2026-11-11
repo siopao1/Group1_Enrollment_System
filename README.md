@@ -7,7 +7,7 @@ profiles, academic programs and enrollment records, with a dashboard computed
 live from the database.
 
 ```
-Browser (HTML / CSS / JavaScript)  →  JSON API (native PHP)  →  MySQL
+Browser / Postman  →  REST API (native PHP: Router → Controller → Validator → Repository)  →  MySQL
 ```
 
 ## Project status
@@ -17,14 +17,15 @@ Browser (HTML / CSS / JavaScript)  →  JSON API (native PHP)  →  MySQL
 | Midterm | Student CRUD, OOP classes, normalized database, search/filter/sort, dashboard | Done |
 | Final – Phase 1 | Users and security tables, credentials in `.env`, user seeder | Done |
 | Final – Phase 2 | Registration, login, sessions, role-based access, CSRF, secure logout | Done |
-| Final – Phase 3 | REST API with clean URLs, bearer tokens, Postman collection | Not started |
+| Final – Phase 3 | REST API with clean URLs, bearer tokens, Postman collection | Done |
 | Final – Phase 4 | Laravel module for subjects, course offerings and enrollments | Not started |
 | Final – Phase 5 | Enrollment report and analytics | Not started |
 | Final – Phase 6 | Testing, documentation, deployment | Not started |
 
 **What works against the real database today:** sign-in and sign-out,
-admin-only user registration, the Dashboard, and the Students screens (list,
-search, filter, sort, paginate, add, edit, delete, view profile). Each of
+admin-only user registration, the Dashboard, the Students screens (list,
+search, filter, sort, paginate, add, edit, delete, view profile), and the REST
+API behind them (`/api/students`, `/api/dashboard`, `/api/auth`). Each of
 these checks the signed-in user's role on the server.
 
 **Still on browser-only mock data:** Subjects, Course Offerings, Enroll
@@ -58,14 +59,16 @@ server-side checks.
    ```
 5. **Start the app.** From the project folder:
    ```
-   C:\xampp\php\php.exe -S localhost:8000 -t public
+   C:\xampp\php\php.exe -S localhost:8000 -t public public/router.php
    ```
-   Then open <http://localhost:8000>.
+   Then open <http://localhost:8000>. The last argument, `public/router.php`,
+   is required: it sends `/api/...` URLs to the API.
 
-> The frontend calls the API at absolute paths such as `/api/students.php`,
-> so the app must be served from the root of a host, as `php -S` does above.
-> Opening it through XAMPP at `http://localhost/<folder>/public/` will not
-> reach the API until those paths are made relative (Phase 3).
+> **Using XAMPP's Apache instead:** put the project under `htdocs` and open
+> `http://localhost/<folder>/public/`. `public/api/.htaccess` routes the API
+> (Apache needs `mod_rewrite` and `AllowOverride All`). The frontend uses
+> relative URLs, so it works from a subfolder. This setup has not been tested
+> yet; the `php -S` command above has.
 
 ## Demo accounts
 
@@ -93,9 +96,17 @@ C:\xampp\mysql\bin\mysql.exe -u root -e "DELETE FROM enrollment_system_min.login
 Group1_Enrollment_System/
 ├── .env.example                  template for the git-ignored .env file
 ├── backend/                      not web-accessible
+│   ├── api/
+│   │   ├── bootstrap.php         loads the API; turns any error into a generic JSON 500
+│   │   ├── Router.php            route table matching; 404 / 405; runs the role check
+│   │   ├── ApiAuth.php           bearer tokens, or session + CSRF; 401 / 419 / 403
+│   │   ├── Request.php           path, query values, headers, JSON body (415 / 400)
+│   │   ├── Response.php          JSON envelope and status codes
+│   │   └── controllers/          AuthController, StudentController, DashboardController
 │   ├── auth/
-│   │   ├── Auth.php              sessions, login, rate limiting, roles, CSRF, logout
-│   │   └── api_guard.php         requireApiRole(): 401 / 403 / 419 for API endpoints
+│   │   └── Auth.php              sessions, login, rate limiting, roles, CSRF, logout
+│   ├── repositories/             StudentRepository, DashboardRepository (all SQL)
+│   ├── validators/               StudentValidator (POST / PUT / PATCH rules)
 │   ├── classes/
 │   │   ├── Person.php            base class: name fields, getFullName()
 │   │   ├── Student.php           extends Person; student data + toArray()
@@ -106,14 +117,18 @@ Group1_Enrollment_System/
 │   └── database/
 │       ├── schema.sql            creates the database and every table
 │       └── seed_users.php        creates the demo accounts
+├── docs/
+│   ├── api.md                    REST API reference
+│   └── postman/                  Postman collection (import and run)
 └── public/                       the web root
     ├── index.php                 app shell (sign-in required); JavaScript renders each screen
     ├── login.php                 sign-in form, processed by PHP
     ├── logout.php                POST-only sign-out
     ├── register.php              admin-only "Create user account" page
+    ├── router.php                for `php -S`: sends /api/... to api/index.php
     ├── api/
-    │   ├── students.php          student CRUD, search, filter, sort, paging
-    │   └── dashboard.php         dashboard statistics
+    │   ├── index.php             the API's single entry point and route table
+    │   └── .htaccess             Apache: sends /api/... to index.php
     ├── uploads/                  reserved for uploaded files
     └── assets/
         ├── css/                  base/, layout/, components/, pages/
@@ -139,33 +154,42 @@ Group1_Enrollment_System/
 | `student_personal_details` | Birth date, gender, civil status | one-to-one with `students` |
 | `student_emergency_contacts` | Emergency contact person | one-to-one with `students` |
 | `users` | Sign-in accounts with hashed passwords and a role | — |
-| `api_tokens` | Hashed bearer tokens for the API (Phase 3) | `user_id` → `users.id` |
+| `api_tokens` | SHA-256 hashes of API bearer tokens, with expiry | `user_id` → `users.id` |
 | `login_attempts` | Failed sign-ins, used for rate limiting | — |
 
 Subjects, course offerings and enrollments will be created by the Laravel
 module's migrations in Phase 4.
 
-## API (current)
+## REST API
 
-All responses use the same JSON envelope:
-`{ "success", "data", "message", "errors", "meta" }`.
+Full reference with request and response examples: **[docs/api.md](docs/api.md)**.
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| GET | `/api/students.php` | List students. Query: `search`, `program`, `year`, `status`, `sort`, `page`, `perPage` |
-| GET | `/api/students.php?id={id}` | Get one student |
-| POST | `/api/students.php` | Add a student (JSON body) |
-| PUT | `/api/students.php?id={id}` | Update a student (JSON body) |
-| DELETE | `/api/students.php?id={id}` | Delete a student |
-| GET | `/api/dashboard.php` | Dashboard statistics |
+| Method | Endpoint | Roles | Success | Errors |
+|---|---|---|---|---|
+| POST | `/api/auth/login` | public | 200 + token | 401, 422, 429 |
+| POST | `/api/auth/logout` | signed in | 204 | 401 |
+| GET | `/api/auth/me` | signed in | 200 | 401 |
+| GET | `/api/students?search=&program=&year=&status=&sort=&page=&perPage=` | all | 200 | 401, 422 |
+| GET | `/api/students/{id}` | all | 200 | 401, 404 |
+| POST | `/api/students` | admin, registrar | 201 | 400, 401, 403, 409, 415, 422 |
+| PUT | `/api/students/{id}` (full replacement) | admin, registrar | 200 | 400, 401, 403, 404, 415, 422 |
+| PATCH | `/api/students/{id}` (partial update) | admin, registrar | 200 | 400, 401, 403, 404, 415, 422 |
+| DELETE | `/api/students/{id}` | admin | 204 | 401, 403, 404 |
+| GET | `/api/dashboard` | all | 200 | 401 |
 
-Every endpoint requires a signed-in session. Requests that change data (POST,
-PUT, DELETE) must also send the page's CSRF token in an `X-CSRF-Token` header.
-Errors: **401** not signed in, **403** role not allowed, **419** missing or
-invalid CSRF token.
+- **Response envelope:** every JSON response is
+  `{ "success", "data", "message", "errors", "meta" }`, and 422 responses list
+  the errors per field.
+- **Unknown URLs and methods:** an unknown URL returns 404, and a wrong method
+  returns 405 with an `Allow` header.
+- **Authentication:** Postman and other clients sign in with
+  `POST /api/auth/login` and send `Authorization: Bearer <token>`. The app's
+  own pages use their session cookie plus an `X-CSRF-Token` header.
 
-Clean REST URLs, bearer tokens for Postman and a Postman collection are added
-in Phase 3.
+**Testing:** import
+[`docs/postman/Group1_Enrollment_API.postman_collection.json`](docs/postman/Group1_Enrollment_API.postman_collection.json)
+into Postman and click **Run**. It has 37 requests covering the success and
+failure cases of every endpoint. It cleans up after itself.
 
 ## Roles
 
@@ -178,8 +202,9 @@ in Phase 3.
 
 Roles are stored in `users.role` and set only by the seeder or an
 administrator. The navigation hides what a role cannot use, but that is only
-for convenience: the server checks the role again on every page and API
-request (`Auth::requireRole()` and `requireApiRole()`).
+for convenience: the server checks the role again on every page
+(`Auth::requireRole()`) and every API route (the roles listed in
+`public/api/index.php`, checked by `ApiAuth`).
 
 ## Security notes
 
@@ -191,8 +216,12 @@ request (`Auth::requireRole()` and `requireApiRole()`).
 | Username guessing | One message for wrong username or wrong password | `login.php` |
 | Session fixation | `session_regenerate_id(true)` on sign-in | `Auth::login()` |
 | Session theft | HttpOnly + SameSite=Lax cookie, strict mode, 30-minute idle timeout | `Auth::start()` |
-| CSRF | Per-session token on every form and data-changing API request, compared with `hash_equals()` | `Auth::verifyCsrf()`, `api_guard.php` |
-| Broken access control | Role checked on the server for every page and API request | `Auth::requireRole()`, `requireApiRole()` |
+| CSRF | Per-session token on every form and on session-based API writes, compared with `hash_equals()`. Bearer-token requests cannot be forged cross-site. | `Auth::verifyCsrf()`, `ApiAuth` |
+| Broken access control | Role checked on the server for every page and API route | `Auth::requireRole()`, `public/api/index.php` + `ApiAuth` |
+| Stolen API token | Random 256-bit tokens, stored only as SHA-256 hashes, 8-hour expiry, revoked on logout | `ApiAuth` |
+| Bad input | Server-side validation for every field (422 per field), JSON-only bodies (415 / 400), whitelisted sort and filter values | `StudentValidator`, `Request`, `StudentController` |
+| Partial writes | A student's three tables are written in one transaction | `StudentRepository` |
+| Error details leaking | Any error becomes a generic JSON 500; details go to the server log only | `backend/api/bootstrap.php` |
 | Logout that leaves the session alive | POST-only logout clears data, expires the cookie, destroys the session | `logout.php`, `Auth::logout()` |
 | XSS | `htmlspecialchars()` in PHP pages; JavaScript screens render data through `escapeHtml()` (re-checked during Phase 6 testing) | PHP pages, `core/dom.js` |
 | Leaked credentials | Database settings in git-ignored `.env`; errors logged, not shown | `database.php` |
@@ -201,9 +230,13 @@ request (`Auth::requireRole()` and `requireApiRole()`).
 
 Parts of this project were written with help from AI coding assistants
 (Claude by Anthropic), including the Phase 1 schema changes, `.env` loading,
-the user seeder, the Phase 2 authentication code (`Auth.php`, `api_guard.php`,
-`login.php`, `logout.php`, `register.php` and the related JavaScript changes)
-and this README. Every team member has reviewed this code and
+the user seeder, the Phase 2 authentication code (`Auth.php`, `login.php`,
+`logout.php`, `register.php` and the related JavaScript changes), the Phase 3
+REST API (everything under `backend/api/`, `backend/repositories/`,
+`backend/validators/`, `public/api/`, `public/router.php`, the related
+JavaScript changes), the Postman collection, `docs/api.md` and this README.
+The Phase 3 repository and validator reuse the SQL and validation rules from
+the team's midterm `students.php`. Every team member has reviewed this code and
 can explain and modify it. Third-party resources loaded by the frontend:
 [Inter](https://fonts.google.com/specimen/Inter) (Google Fonts) and
 [Lucide](https://lucide.dev) icons.
