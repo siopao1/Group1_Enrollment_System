@@ -3,7 +3,7 @@ import { pageHeader } from "../components/pageHeader.js";
 import { field, selectField, textareaField } from "../components/formFields.js";
 import { notify } from "../components/toast.js";
 import { qs, qsa, on, delegate, formValues, bindPhoneInput } from "../core/dom.js";
-import { appConfig } from "../config/app.config.js";
+import { settings } from "../core/settings.js";
 import {
   PROGRAMS,
   YEAR_LEVELS,
@@ -35,7 +35,7 @@ export function studentFormMarkup() {
   <div class="form-section"><h3>Academic Information</h3><div class="form-grid">
     ${selectField({ label: "Program", name: "program", options: PROGRAMS, placeholder: "Select program", required: true })}
     ${selectField({ label: "Year Level", name: "year", options: YEAR_LEVELS, placeholder: "Select year level", required: true })}
-    ${field({ label: "Academic Year", name: "academicYear", value: appConfig.defaults.academicYear })}
+    ${field({ label: "Academic Year", name: "academicYear", value: settings.get().academicYear })}
     ${selectField({ label: "Student Status", name: "status", options: STUDENT_STATUSES, value: "Active" })}
   </div></div>
 

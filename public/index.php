@@ -1,9 +1,14 @@
 <?php
 
 require __DIR__ . '/../backend/auth/Auth.php';
+require_once __DIR__ . '/../backend/config/database.php';
+require_once __DIR__ . '/../backend/repositories/SettingsRepository.php';
 
 Auth::start();
 $user = Auth::requireLogin(); // not signed in → login.php
+
+// System preferences (default term, rows per page) for the JavaScript pages.
+$settings = (new SettingsRepository(getDbConnection()))->all();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -17,6 +22,7 @@ $user = Auth::requireLogin(); // not signed in → login.php
     // The signed-in user, from the server session. The JavaScript only uses it
     // to choose what to show; the server re-checks the role on every request.
     window.__USER__ = <?= json_encode($user, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    window.__SETTINGS__ = <?= json_encode($settings, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

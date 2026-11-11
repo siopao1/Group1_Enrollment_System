@@ -21,6 +21,7 @@ $adminOnly = ['admin'];                // may delete
 $students  = static fn (): StudentController => new StudentController(new StudentRepository(db()));
 $dashboard = static fn (): DashboardController => new DashboardController(new DashboardRepository(db()));
 $auth      = static fn (): AuthController => new AuthController();
+$settings  = static fn (): SettingsController => new SettingsController(new SettingsRepository(db()));
 
 $router = new Router();
 
@@ -39,5 +40,9 @@ $router->add('DELETE', 'students/{id}', $adminOnly, fn (array $p) => $students()
 
 // Dashboard
 $router->add('GET', 'dashboard', $everyone, fn () => $dashboard()->show());
+
+// Settings — everyone reads the defaults; only admin changes them
+$router->add('GET', 'settings', $everyone, fn () => $settings()->show());
+$router->add('PUT', 'settings', $adminOnly, fn (array $p, array $user) => $settings()->update($user));
 
 $router->dispatch(Request::method(), Request::apiPath());

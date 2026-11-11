@@ -20,6 +20,7 @@
 --   api_tokens                   — bearer tokens for the REST API; only the
 --                                   SHA-256 hash of each token is stored.
 --   login_attempts               — failed sign-ins, used for rate limiting.
+--   settings                     — system preferences (default term, rows per page).
 --
 -- Subjects, course offerings and enrollments are created by the Laravel
 -- module's migrations, not here.
@@ -27,6 +28,10 @@
 -- Every table uses utf8mb4_unicode_ci (Laravel's default) so that foreign
 -- keys between these tables and the Laravel tables have matching collations.
 -- After importing this file, run:  php backend/database/seed_users.php
+
+-- This file is UTF-8 (e.g. the "–" in '2026–2027'); read it as such even when
+-- the mysql command line defaults to another character set.
+SET NAMES utf8mb4;
 
 CREATE DATABASE IF NOT EXISTS enrollment_system_min
     CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -105,6 +110,21 @@ CREATE TABLE IF NOT EXISTS login_attempts (
     INDEX idx_login_attempts_username (username, attempted_at),
     INDEX idx_login_attempts_ip (ip_address, attempted_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- System preferences set by an administrator on the Settings page, e.g. the
+-- default term used by the Dashboard and Reports. One row per setting.
+CREATE TABLE IF NOT EXISTS settings (
+    setting_key   VARCHAR(50)  PRIMARY KEY,
+    setting_value VARCHAR(255) NOT NULL,
+    updated_by    INT          NULL,
+    updated_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (updated_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
+    ('academic_year', '2026–2027'),
+    ('semester', '1st Semester'),
+    ('rows_per_page', '10');
 
 INSERT IGNORE INTO programs (name) VALUES
     ('BS Information Technology'),

@@ -1,9 +1,9 @@
+import { http } from "../core/http.js";
 
-import { apiClient } from "../core/apiClient.js";
-
+// GET is open to every signed-in role; PUT is admin only (the server checks).
 export const settingsApi = {
-  get: () => apiClient.get("/settings"),
-  update: (payload) => apiClient.put("/settings", payload),
+  get: () => http.get("api/settings"),
+  update: (payload) => http.put("api/settings", payload),
 };
 
 export default settingsApi;

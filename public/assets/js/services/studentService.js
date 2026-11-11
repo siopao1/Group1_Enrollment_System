@@ -1,7 +1,7 @@
 
 
 import { studentApi } from "../api/studentApi.js";
-import { appConfig } from "../config/app.config.js";
+import { settings } from "../core/settings.js";
 import { validate, rules, firstError } from "../core/validator.js";
 import { ApiError } from "../core/apiError.js";
 
@@ -42,7 +42,7 @@ export function toStudentPayload(values) {
     civilStatus: values.civilStatus || "",
     dateOfBirth: values.dob || "",
     address: values.address || "",
-    academicYear: values.academicYear || appConfig.defaults.academicYear,
+    academicYear: values.academicYear || settings.get().academicYear,
     emergencyContact: {
       name: values.emergencyName || "",
       relationship: values.relationship || "",
@@ -53,7 +53,7 @@ export function toStudentPayload(values) {
 }
 
 export const studentService = {
-  async list({ search = "", program = "", year = "", status = "", sort = "", page = 1, perPage = appConfig.pageSize } = {}) {
+  async list({ search = "", program = "", year = "", status = "", sort = "", page = 1, perPage = settings.get().rowsPerPage } = {}) {
     const { data, meta } = await studentApi.list({ search, program, year, status, sort, page, perPage });
     return { students: data, meta: meta ?? { page, perPage, total: data.length, totalPages: 1 } };
   },

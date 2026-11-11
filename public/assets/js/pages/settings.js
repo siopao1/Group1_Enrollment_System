@@ -14,7 +14,7 @@ export default {
     const settings = await settingsService.get();
 
     return (
-      pageHeader("Settings", "Manage system preferences and administrative configuration.") +
+      pageHeader("Settings", "Default term for reports and new records, and how many rows each list shows.") +
       `<div class="grid-2">
   <div class="card"><div class="card-header"><h3>System Preferences</h3></div>
     <div class="card-body"><form id="settingsForm">
@@ -34,7 +34,7 @@ export default {
         label: "Rows Per Page",
         name: "rowsPerPage",
         options: ROWS_PER_PAGE,
-        value: settings.rowsPerPage,
+        value: String(settings.rowsPerPage),
       })}</div>
       <button type="submit" class="btn btn-primary">Save Changes</button>
     </form></div>
