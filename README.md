@@ -7,8 +7,18 @@ profiles, academic programs and enrollment records, with a dashboard computed
 live from the database.
 
 ```
-Browser / Postman  →  REST API (native PHP: Router → Controller → Validator → Repository)  →  MySQL
+                ┌─ Main app, port 8000 (native PHP) ───────────────────────────────┐
+Browser ──────► │ Dashboard, Students, Reports, Settings + REST API (/api/...)      │ ──┐
+Postman ──────► │ Router → Controller → Validator → Repository (MySQLi)            │   │
+                └───────────────────────────────────────────────────────────────────┘   ├─► one MySQL/MariaDB
+                ┌─ Laravel module, port 8001 (enrollment-module/) ─────────────────┐   │   database
+Browser ──────► │ Subjects, Course Offerings, Enroll Student, Enrollment Records,  │ ──┘
+                │ Student Records — Routes → Controllers → Eloquent models → Blade │
+                └───────────────────────────────────────────────────────────────────┘
 ```
+
+The two parts share one database and one set of user accounts, and their
+navigation menus link to each other.
 
 ## Project status
 
@@ -18,20 +28,20 @@ Browser / Postman  →  REST API (native PHP: Router → Controller → Validato
 | Final – Phase 1 | Users and security tables, credentials in `.env`, user seeder | Done |
 | Final – Phase 2 | Registration, login, sessions, role-based access, CSRF, secure logout | Done |
 | Final – Phase 3 | REST API with clean URLs, bearer tokens, Postman collection | Done |
-| Final – Phase 4 | Laravel module for subjects, course offerings and enrollments | In progress (Laravel 12 installed) |
+| Final – Phase 4 | Laravel module for subjects, course offerings and enrollments | Done |
 | Final – Phase 5 | Enrollment report and analytics | Not started |
 | Final – Phase 6 | Testing, documentation, deployment | Not started |
 
 **What works against the real database today:** sign-in and sign-out,
 admin-only user registration, the Dashboard, the Students screens (list,
 search, filter, sort, paginate, add, edit, delete, view profile), and the REST
-API behind them (`/api/students`, `/api/dashboard`, `/api/auth`). Each of
-these checks the signed-in user's role on the server.
+API behind them (`/api/students`, `/api/dashboard`, `/api/auth`), plus the
+Laravel module's Subjects, Course Offerings, Enroll Student, Enrollment
+Records and Student Records pages. Each of these checks the signed-in user's
+role on the server.
 
-**Still on browser-only mock data:** Subjects, Course Offerings, Enroll
-Student, Enrollment Records, Student Records, Reports and the Settings
-preferences. These are replaced in later phases and are not yet protected by
-server-side checks.
+**Still on browser-only mock data:** Reports and the Settings preferences
+(Phase 5).
 
 ## Technologies
 
@@ -39,6 +49,7 @@ server-side checks.
 |---|---|
 | Frontend | HTML5, CSS3, vanilla JavaScript (ES modules), no build step |
 | Backend | Native PHP 8.2, MySQLi with prepared statements |
+| Laravel module | Laravel 12 (MVC), Eloquent ORM, Blade views, migrations and seeders |
 | Database | MySQL / MariaDB (XAMPP), InnoDB, utf8mb4 |
 | Tools | XAMPP, Visual Studio Code, Postman, Git/GitHub |
 
@@ -64,32 +75,39 @@ server-side checks.
    Then open <http://localhost:8000>. The last argument, `public/router.php`,
    is required: it sends `/api/...` URLs to the API.
 
-### Laravel module (`enrollment-module/`)
-
-The Laravel 12 module uses the **same MySQL/MariaDB database** as the main app.
-It needs [Composer](https://getcomposer.org). From the `enrollment-module` folder:
-
-```
-composer install
-copy .env.example .env
-php artisan key:generate
-php artisan serve --port=8001
-```
-
-Then open <http://localhost:8001>. `.env.example` is already set to the
-`enrollment_system_min` database on XAMPP's MariaDB (`DB_CONNECTION=mariadb`);
-change the `DB_*` values if yours differ. Run the main app on port 8000 and the
-Laravel module on port 8001 at the same time.
-
-> Do not run `php artisan migrate` until the module's own migrations are
-> added: Laravel's default migrations include a `users` table that would
-> conflict with the main app's `users` table.
-
 > **Using XAMPP's Apache instead:** put the project under `htdocs` and open
 > `http://localhost/<folder>/public/`. `public/api/.htaccess` routes the API
 > (Apache needs `mod_rewrite` and `AllowOverride All`). The frontend uses
 > relative URLs, so it works from a subfolder. This setup has not been tested
 > yet; the `php -S` command above has.
+
+### Laravel module (`enrollment-module/`)
+
+The Laravel 12 module uses the **same MySQL/MariaDB database** as the main
+app, so do steps 1–4 above first. It needs
+[Composer](https://getcomposer.org). From the `enrollment-module` folder:
+
+```
+composer install
+copy .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan db:seed
+php artisan serve --port=8001
+```
+
+Then open <http://localhost:8001> and sign in with the same demo accounts.
+Keep the main app running on port 8000 at the same time.
+
+- `migrate` adds the module's four tables (subjects, course_offerings,
+  enrollments, enrollment_offering) next to the main app's tables.
+- `db:seed` adds 15 subjects, 17 sections, 8 demo students and 7 enrollments.
+  It can be run again safely.
+- `.env.example` is already set to the `enrollment_system_min` database on
+  XAMPP's MariaDB (`DB_CONNECTION=mariadb`). Change the `DB_*` values if yours
+  differ, and `MAIN_APP_URL` if the main app is not on port 8000.
+- If the module runs on a different address, also change `laravelUrl` in
+  `public/assets/js/config/app.config.js` so the main app's menu links to it.
 
 ## Demo accounts
 
@@ -139,6 +157,17 @@ Group1_Enrollment_System/
 │       ├── schema.sql            creates the database and every table
 │       └── seed_users.php        creates the demo accounts
 ├── enrollment-module/            Laravel 12 module (Phase 4), shares the same database
+│   ├── app/
+│   │   ├── Models/               Subject, CourseOffering, Enrollment, Student, Program, User
+│   │   ├── Http/Controllers/     Subject, CourseOffering, Enrollment, StudentRecord, Auth/Login
+│   │   ├── Http/Requests/        form validation (SubjectRequest, CourseOfferingRequest, EnrollmentRequest)
+│   │   ├── Http/Middleware/      EnsureRole ('role:admin,registrar' → 403 otherwise)
+│   │   └── Services/             EnrollmentService (enrollment business rules)
+│   ├── database/migrations/      the module's four tables
+│   ├── database/seeders/         subjects, offerings, demo students, enrollments
+│   ├── resources/views/          Blade pages (layout, subjects, offerings, enrollments, records)
+│   ├── routes/web.php            every page and the roles allowed on it
+│   └── public/css/               copy of the main app's CSS + laravel.css
 ├── docs/
 │   ├── api.md                    REST API reference
 │   └── postman/                  Postman collection (import and run)
@@ -161,7 +190,7 @@ Group1_Enrollment_System/
             ├── services/         logic the pages call
             ├── components/       reusable UI (table, modal, toast, …)
             ├── pages/            one module per screen
-            └── mock/             temporary fake API for unfinished screens
+            └── mock/             temporary fake API for Reports and Settings
 ```
 
 ## Database
@@ -179,8 +208,65 @@ Group1_Enrollment_System/
 | `api_tokens` | SHA-256 hashes of API bearer tokens, with expiry | `user_id` → `users.id` |
 | `login_attempts` | Failed sign-ins, used for rate limiting | — |
 
-Subjects, course offerings and enrollments will be created by the Laravel
-module's migrations in Phase 4.
+The Laravel module's migrations (`enrollment-module/database/migrations`) add:
+
+| Table | Purpose | Key relationships |
+|---|---|---|
+| `subjects` | Subject code, name, units, department, status | `prerequisite_id` → `subjects.id` |
+| `course_offerings` | A section of a subject in one term: instructor, room, schedule, slots | `subject_id` → `subjects.id`; one section code per subject per term |
+| `enrollments` | One student's enrollment for one term, with status | `student_id` → `students.student_id` (deleted with the student); `enrolled_by` → `users.id`; one per student per term |
+| `enrollment_offering` | The sections an enrollment includes (many-to-many) | `enrollment_id` → `enrollments.id`; `course_offering_id` → `course_offerings.id` |
+
+## Laravel module
+
+The enrollment part of the system is built with Laravel's MVC structure.
+
+**Eloquent relationships**
+- `Subject` *hasMany* `CourseOffering`, and *belongsTo* its prerequisite `Subject`.
+- `CourseOffering` *belongsTo* `Subject`, and *belongsToMany* `Enrollment` through `enrollment_offering`.
+- `Enrollment` *belongsTo* `Student`, *belongsToMany* `CourseOffering`, and *belongsTo* the `User` who enrolled the student.
+- `Student` *hasMany* `Enrollment`, and *belongsTo* `Program`.
+- `Student`, `Program` and `User` map the main app's existing tables.
+
+**Pages**
+
+| Page | URL | Admin | Registrar | Faculty |
+|---|---|:-:|:-:|:-:|
+| Subjects (list, search, filter) | `/subjects` | ✓ | ✓ | ✓ |
+| Add, edit, delete subjects | `/subjects/create`, `/subjects/{id}/edit` | ✓ | 403 | 403 |
+| Course Offerings (list by term), class list | `/offerings`, `/offerings/{id}` | ✓ | ✓ | ✓ |
+| Add, edit, delete offerings | `/offerings/create`, `/offerings/{id}/edit` | ✓ | 403 | 403 |
+| Enroll Student, edit an enrollment | `/enrollments/create`, `/enrollments/{id}/edit` | ✓ | ✓ | 403 |
+| Enrollment Records | `/enrollments`, `/enrollments/{id}` | ✓ | ✓ | 403 |
+| Delete an enrollment | — | ✓ | 403 | 403 |
+| Student Records (enrollments by term) | `/records`, `/records/{student}` | ✓ | ✓ | ✓ |
+
+**Enrollment rules** (`app/Services/EnrollmentService.php`), checked on the
+server in a database transaction that locks the chosen sections:
+- Every section must belong to the enrollment's term.
+- New sections must be Open, and their subject Active.
+- Only one section per subject.
+- A section cannot exceed its slots. A Dropped enrollment frees its seats.
+- At most 26 units per term.
+- Only one enrollment per student per term.
+
+Other safeguards:
+- A subject that still has sections cannot be deleted.
+- A section with enrolled students cannot be deleted or moved to another
+  term, and its slots cannot drop below the number enrolled.
+
+**Integration with the main app**
+- Both parts use the same database. Students created in the main app can be
+  enrolled right away, and deleting a student there also removes their
+  enrollments (foreign key `ON DELETE CASCADE`).
+- Both parts use the same `users` table and bcrypt password hashes, so the
+  same usernames and passwords work in both.
+- The menus link to each other. Old main-app addresses such as `#/subjects`
+  forward to the Laravel pages.
+- Each part keeps its own sign-in session, so a user signs in once on each
+  (same credentials). Sharing one session across two separate applications on
+  different ports would need a single sign-on setup, which is outside this
+  project's scope.
 
 ## REST API
 
@@ -225,8 +311,10 @@ failure cases of every endpoint. It cleans up after itself.
 Roles are stored in `users.role` and set only by the seeder or an
 administrator. The navigation hides what a role cannot use, but that is only
 for convenience: the server checks the role again on every page
-(`Auth::requireRole()`) and every API route (the roles listed in
-`public/api/index.php`, checked by `ApiAuth`).
+(`Auth::requireRole()`), every API route (the roles listed in
+`public/api/index.php`, checked by `ApiAuth`) and every Laravel route (the
+`role:` middleware in `enrollment-module/routes/web.php`). The Laravel pages'
+roles are listed under [Laravel module](#laravel-module).
 
 ## Security notes
 
@@ -247,6 +335,8 @@ for convenience: the server checks the role again on every page
 | Logout that leaves the session alive | POST-only logout clears data, expires the cookie, destroys the session | `logout.php`, `Auth::logout()` |
 | XSS | `htmlspecialchars()` in PHP pages; JavaScript screens render data through `escapeHtml()` (re-checked during Phase 6 testing) | PHP pages, `core/dom.js` |
 | Leaked credentials | Database settings in git-ignored `.env`; errors logged, not shown | `database.php` |
+| Laravel module | Eloquent for every query; `@csrf` on every form (419 without it); `role:` middleware on every route (403); sign-in limited to 5 attempts per minute; session regenerated on sign-in; POST-only logout; Blade `{{ }}` escapes output | `enrollment-module/` |
+| Overbooking a section | Seats checked inside a transaction with the chosen sections locked (`SELECT … FOR UPDATE`) | `EnrollmentService` |
 
 ## AI and third-party code disclosure
 
@@ -256,7 +346,11 @@ the user seeder, the Phase 2 authentication code (`Auth.php`, `login.php`,
 `logout.php`, `register.php` and the related JavaScript changes), the Phase 3
 REST API (everything under `backend/api/`, `backend/repositories/`,
 `backend/validators/`, `public/api/`, `public/router.php`, the related
-JavaScript changes), the Postman collection, `docs/api.md` and this README.
+JavaScript changes), the Postman collection, `docs/api.md`, the Phase 4
+Laravel module (the migrations, seeders, models, controllers, form requests,
+middleware, service, Blade views and `laravel.css` in `enrollment-module/`,
+and the main-app menu and redirect changes) and this README. The Laravel
+project skeleton itself comes from `composer create-project laravel/laravel`.
 The Phase 3 repository and validator reuse the SQL and validation rules from
 the team's midterm `students.php`. Every team member has reviewed this code and
 can explain and modify it. Third-party resources loaded by the frontend:
