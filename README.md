@@ -359,7 +359,7 @@ Full results with expected and actual outcomes: **[docs/testing.md](docs/testing
 
 | Suite | Command (from the project folder, both servers running) | Result |
 |---|---|---|
-| System test: sign-in, roles, CSRF, SQL injection, XSS, validation, API, single sign-on, integration, report accuracy | `php tests\system_test.php` | 60 / 60 |
+| System test: sign-in, roles, CSRF, SQL injection, XSS, validation, API, single sign-on, integration, report accuracy | `php tests\system_test.php` | 72 / 72 |
 | Laravel feature tests: enrollment rules, access control, sign-in, single sign-on, relationships | `cd enrollment-module` then `php artisan test` | 39 / 39 |
 | Postman collection: every endpoint | Postman → *Run*, or `php tests\run_postman.php` | 48 / 48 |
 
