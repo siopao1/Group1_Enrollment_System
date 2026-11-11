@@ -1,7 +1,5 @@
 
 
-import { appConfig } from "./config/app.config.js";
-import { useMockTransport } from "./core/apiClient.js";
 import { auth } from "./core/auth.js";
 import { createRouter } from "./core/router.js";
 import { createShell } from "./shell.js";
@@ -70,15 +68,22 @@ function installSelectMenus() {
   });
 }
 
-async function boot() {
+// Earlier versions kept a mock database and the user in localStorage under
+// this prefix. Everything now comes from the server, so clear what is left.
+function removeOldMockData() {
+  try {
+    Object.keys(window.localStorage)
+      .filter((key) => key.startsWith("enrollment_system:"))
+      .forEach((key) => window.localStorage.removeItem(key));
+  } catch {
+    // storage blocked (private mode): nothing to clean
+  }
+}
+
+function boot() {
   installSelectMenus();
   
-  // Screens not yet backed by the database (subjects, offerings, enrollment,
-  // records, reports, settings) still read from the browser mock.
-  if (appConfig.useMockApi) {
-    const { mockTransport } = await import("./mock/mockServer.js");
-    useMockTransport(mockTransport);
-  }
+  removeOldMockData();
 
   // index.php only renders for a signed-in user and passes that user here.
   const user = window.__USER__ ?? null;
@@ -86,7 +91,7 @@ async function boot() {
     window.location.replace(LOGIN_URL);
     return;
   }
-  auth.setSession({ user, token: null });
+  auth.setUser(user);
 
   const outlet = document.querySelector("#content");
   let shell;

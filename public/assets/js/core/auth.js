@@ -1,13 +1,11 @@
-
-
 import { permissionsForRole, ROLE_LABELS } from "../config/roles.js";
-import { storage } from "./storage.js";
-import { setAuthToken } from "./apiClient.js";
 
-const USER_KEY = "auth.user";
+// The signed-in user for this page load. index.php prints it from the PHP
+// session (window.__USER__) and main.js passes it in here. The JavaScript only
+// uses it to decide what to show; the server checks the role on every request.
 const listeners = new Set();
 
-let currentUser = storage.get(USER_KEY, null);
+let currentUser = null;
 
 function notify() {
   listeners.forEach((listener) => listener(currentUser));
@@ -34,18 +32,13 @@ export const auth = {
     return currentUser ? roles.includes(currentUser.role) : false;
   },
 
-  setSession({ user, token }) {
+  setUser(user) {
     currentUser = user ?? null;
-    if (user) storage.set(USER_KEY, user);
-    else storage.remove(USER_KEY);
-    setAuthToken(token ?? null);
     notify();
   },
 
   clearSession() {
     currentUser = null;
-    storage.remove(USER_KEY);
-    setAuthToken(null);
     notify();
   },
 
