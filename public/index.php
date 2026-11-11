@@ -9,6 +9,9 @@ $user = Auth::requireLogin(); // not signed in → login.php
 
 // System preferences (default term, rows per page) for the JavaScript pages.
 $settings = (new SettingsRepository(getDbConnection()))->all();
+
+// Where the Laravel module runs (LARAVEL_URL in .env), for the menu links.
+$config = ['laravelUrl' => rtrim((string) envValue('LARAVEL_URL', 'http://localhost:8001'), '/')];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -23,6 +26,7 @@ $settings = (new SettingsRepository(getDbConnection()))->all();
     // to choose what to show; the server re-checks the role on every request.
     window.__USER__ = <?= json_encode($user, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
     window.__SETTINGS__ = <?= json_encode($settings, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    window.__CONFIG__ = <?= json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) ?>;
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

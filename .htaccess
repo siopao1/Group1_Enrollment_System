@@ -1,0 +1,26 @@
+# Used only when the whole project folder is placed inside Apache's web root
+# (e.g. C:\xampp\htdocs\Group1_Enrollment_System). Only the two public/
+# folders are meant to be reachable from a browser; everything else — .env
+# (database password), backend/, docs/, tests/, the Laravel app's code and
+# .env, .git — is refused with 403.
+
+Options -Indexes
+
+# Never serve dotfiles (.env, .git, .htaccess …), wherever they are.
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # The project root itself → the main app.
+    RewriteRule ^$ public/ [R=302,L]
+
+    # The main app and the Laravel module's public folder are allowed.
+    RewriteRule ^public(/|$) - [L]
+    RewriteRule ^enrollment-module/public(/|$) - [L]
+
+    # Anything else is forbidden.
+    RewriteRule ^ - [F]
+</IfModule>
