@@ -21,3 +21,7 @@ public/uploads/*
 .DS_Store
 Thumbs.db
 *.swp
+
+# Project documentation (reports, diagrams, Postman export) is kept locally,
+# not in the repository.
+/docs/
