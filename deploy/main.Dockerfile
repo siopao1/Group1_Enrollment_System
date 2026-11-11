@@ -15,8 +15,11 @@ RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-avail
 COPY backend /var/www/html/backend
 COPY public /var/www/html/public
 COPY deploy/start-apache.sh /usr/local/bin/start-apache
-RUN chmod +x /usr/local/bin/start-apache
+COPY deploy/start-main.sh /usr/local/bin/start-main
+COPY deploy/init-db.php /usr/local/lib/init-db.php
+RUN chmod +x /usr/local/bin/start-apache /usr/local/bin/start-main
 
 # Settings come from environment variables (DB_HOST, DB_PORT, DB_USERNAME,
 # DB_PASSWORD, DB_DATABASE, LARAVEL_URL, APP_DEBUG); no .env file is needed.
-CMD ["start-apache"]
+# On start, the database is created from schema.sql if it does not exist yet.
+CMD ["start-main"]
