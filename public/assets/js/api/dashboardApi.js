@@ -5,9 +5,14 @@ import { ApiError } from "../core/apiError.js";
 async function summary() {
   let response;
   try {
-    response = await fetch("/api/dashboard.php");
+    response = await fetch("/api/dashboard.php", { credentials: "same-origin" });
   } catch {
     throw new ApiError("Unable to reach the server. Check your connection.", { status: 0 });
+  }
+
+  // Session expired or signed out in another tab: back to the login page.
+  if (response.status === 401) {
+    window.location.href = "login.php";
   }
 
   const envelope = await response.json().catch(() => null);

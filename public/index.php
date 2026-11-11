@@ -1,9 +1,23 @@
+<?php
+
+require __DIR__ . '/../backend/auth/Auth.php';
+
+Auth::start();
+$user = Auth::requireLogin(); // not signed in → login.php
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Sent back in the X-CSRF-Token header on every request that changes data. -->
+  <meta name="csrf-token" content="<?= htmlspecialchars(Auth::csrfToken(), ENT_QUOTES, 'UTF-8') ?>">
   <title>University — Enrollment &amp; Records</title>
+  <script>
+    // The signed-in user, from the server session. The JavaScript only uses it
+    // to choose what to show; the server re-checks the role on every request.
+    window.__USER__ = <?= json_encode($user, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">

@@ -2,17 +2,27 @@
 
 import { apiClient } from "../core/apiClient.js";
 import { ApiError } from "../core/apiError.js";
+import { csrfToken } from "../core/csrf.js";
 
 async function realRequest(method, path, body) {
   let response;
   try {
     response = await fetch(path, {
       method,
-      headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
+      credentials: "same-origin",
+      headers: {
+        ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+        "X-CSRF-Token": csrfToken(),
+      },
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch {
     throw new ApiError("Unable to reach the server. Check your connection.", { status: 0 });
+  }
+
+  // Session expired or signed out in another tab: back to the login page.
+  if (response.status === 401) {
+    window.location.href = "login.php";
   }
 
   const envelope = await response.json().catch(() => null);

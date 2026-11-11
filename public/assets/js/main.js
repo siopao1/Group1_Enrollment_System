@@ -6,7 +6,6 @@ import { auth } from "./core/auth.js";
 import { createRouter } from "./core/router.js";
 import { createShell } from "./shell.js";
 import { routes } from "./routes.js";
-import { authService } from "./services/authService.js";
 
 const LOGIN_URL = "login.php";
 
@@ -74,19 +73,20 @@ function installSelectMenus() {
 async function boot() {
   installSelectMenus();
   
+  // Screens not yet backed by the database (subjects, offerings, enrollment,
+  // records, reports, settings) still read from the browser mock.
   if (appConfig.useMockApi) {
     const { mockTransport } = await import("./mock/mockServer.js");
     useMockTransport(mockTransport);
   }
 
-  if (!auth.isAuthenticated()) {
-    try {
-      await authService.login({ username: "admin", password: "password" });
-    } catch {
-      window.location.replace(LOGIN_URL);
-      return;
-    }
+  // index.php only renders for a signed-in user and passes that user here.
+  const user = window.__USER__ ?? null;
+  if (!user) {
+    window.location.replace(LOGIN_URL);
+    return;
   }
+  auth.setSession({ user, token: null });
 
   const outlet = document.querySelector("#content");
   let shell;
