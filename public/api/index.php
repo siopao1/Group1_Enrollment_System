@@ -22,6 +22,11 @@ $students  = static fn (): StudentController => new StudentController(new Studen
 $dashboard = static fn (): DashboardController => new DashboardController(new DashboardRepository(db()));
 $auth      = static fn (): AuthController => new AuthController();
 $settings  = static fn (): SettingsController => new SettingsController(new SettingsRepository(db()));
+$reports   = static function (): ReportController {
+    $repository = new ReportRepository(db());
+
+    return new ReportController($repository, new ReportService($repository));
+};
 
 $router = new Router();
 
@@ -44,5 +49,9 @@ $router->add('GET', 'dashboard', $everyone, fn () => $dashboard()->show());
 // Settings — everyone reads the defaults; only admin changes them
 $router->add('GET', 'settings', $everyone, fn () => $settings()->show());
 $router->add('PUT', 'settings', $adminOnly, fn (array $p, array $user) => $settings()->update($user));
+
+// Reports — admin and registrar (faculty gets 403)
+$router->add('GET', 'reports', $staff, fn () => $reports()->index());
+$router->add('GET', 'reports/{type}', $staff, fn (array $p) => $reports()->show($p['type']));
 
 $router->dispatch(Request::method(), Request::apiPath());

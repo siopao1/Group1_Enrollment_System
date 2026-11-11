@@ -10,6 +10,7 @@ declare(strict_types=1);
  */
 
 ini_set('display_errors', '0'); // never print PHP errors into a JSON response
+date_default_timezone_set('Asia/Manila'); // report timestamps in local time
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../auth/Auth.php';
@@ -22,10 +23,13 @@ require_once __DIR__ . '/../validators/StudentValidator.php';
 require_once __DIR__ . '/../repositories/StudentRepository.php';
 require_once __DIR__ . '/../repositories/DashboardRepository.php';
 require_once __DIR__ . '/../repositories/SettingsRepository.php';
+require_once __DIR__ . '/../repositories/ReportRepository.php';
+require_once __DIR__ . '/../services/ReportService.php';
 require_once __DIR__ . '/controllers/AuthController.php';
 require_once __DIR__ . '/controllers/StudentController.php';
 require_once __DIR__ . '/controllers/DashboardController.php';
 require_once __DIR__ . '/controllers/SettingsController.php';
+require_once __DIR__ . '/controllers/ReportController.php';
 
 /** One shared database connection per request. */
 function db(): mysqli

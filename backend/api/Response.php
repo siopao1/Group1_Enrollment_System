@@ -46,6 +46,33 @@ final class Response
         ]);
     }
 
+    /**
+     * A CSV file download (used by the reports). Starts with a UTF-8 byte order
+     * mark so Excel shows characters such as "–" correctly. Text cells starting
+     * with = + - @ are prefixed with ' so a spreadsheet will not run them as formulas.
+     *
+     * @param list<array<int, string|int|float|null>> $lines
+     */
+    public static function csv(string $filename, array $lines): never
+    {
+        http_response_code(200);
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . preg_replace('/[^A-Za-z0-9._-]/', '', $filename) . '"');
+        header('Cache-Control: no-store');
+
+        $out = fopen('php://output', 'w');
+        fwrite($out, "\xEF\xBB\xBF");
+        foreach ($lines as $line) {
+            $cells = array_map(
+                static fn ($cell) => is_string($cell) && preg_match('/^[=+\-@\t\r]/', $cell) === 1 ? "'" . $cell : $cell,
+                $line
+            );
+            fputcsv($out, $cells, ',', '"', '');
+        }
+        fclose($out);
+        exit;
+    }
+
     /** 204 No Content: success with no body at all (used by DELETE and logout). */
     public static function noContent(): never
     {
