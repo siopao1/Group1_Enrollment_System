@@ -136,9 +136,14 @@
         panel.classList.toggle('open', open);
         overlay.classList.toggle('show', open);
         button.setAttribute('aria-expanded', String(open));
+        // Hide the burger while the drawer is open so it does not cover the drawer's logo.
+        button.classList.toggle('is-hidden', open);
       }
       button.addEventListener('click', () => toggle(!panel.classList.contains('open')));
       overlay.addEventListener('click', () => toggle(false));
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && panel.classList.contains('open')) toggle(false);
+      });
     })();
   </script>
   @stack('scripts')
