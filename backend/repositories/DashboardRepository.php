@@ -14,7 +14,8 @@ final class DashboardRepository
     {
     }
 
-    public function summary(): array
+    /** $academicYear and $semester are the current term, from the settings table. */
+    public function summary(string $academicYear, string $semester): array
     {
         $totalStudents   = $this->count('SELECT COUNT(*) FROM students');
         $activeStudents  = $this->count("SELECT COUNT(*) FROM students WHERE status = 'Active'");
@@ -50,12 +51,48 @@ final class DashboardRepository
         }
 
         return [
+            'term'            => $this->termFigures($academicYear, $semester),
             'totalStudents'   => $totalStudents,
             'activeStudents'  => $activeStudents,
             'pendingStudents' => $pendingStudents,
             'totalPrograms'   => $totalPrograms,
             'byProgram'       => $byProgram,
             'statusBreakdown' => ['total' => $totalStudents, 'items' => $statusItems],
+        ];
+    }
+
+    /**
+     * Enrollment figures for the current term: students enrolled (not Dropped)
+     * and how many of the term's sections are full. The term comes from the
+     * settings table, so these queries are prepared statements.
+     */
+    private function termFigures(string $academicYear, string $semester): array
+    {
+        $stmt = $this->conn->prepare(
+            "SELECT COUNT(*) FROM enrollments
+              WHERE academic_year = ? AND semester = ? AND status <> 'Dropped'"
+        );
+        $stmt->execute([$academicYear, $semester]);
+        $enrolled = (int) $stmt->get_result()->fetch_row()[0];
+
+        $stmt = $this->conn->prepare(
+            "SELECT COUNT(*) AS sections, COALESCE(SUM(taken >= slots), 0) AS full
+               FROM (SELECT o.id, o.slots, COUNT(e.id) AS taken
+                       FROM course_offerings o
+                       LEFT JOIN enrollment_offering eo ON eo.course_offering_id = o.id
+                       LEFT JOIN enrollments e ON e.id = eo.enrollment_id AND e.status <> 'Dropped'
+                      WHERE o.academic_year = ? AND o.semester = ?
+                      GROUP BY o.id, o.slots) AS term_sections"
+        );
+        $stmt->execute([$academicYear, $semester]);
+        $sections = $stmt->get_result()->fetch_assoc();
+
+        return [
+            'academicYear' => $academicYear,
+            'semester'     => $semester,
+            'enrolled'     => $enrolled,
+            'sections'     => (int) $sections['sections'],
+            'sectionsFull' => (int) $sections['full'],
         ];
     }
 

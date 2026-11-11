@@ -19,7 +19,7 @@ $adminOnly = ['admin'];                // may delete
 
 // Controllers are created only when their route is used.
 $students  = static fn (): StudentController => new StudentController(new StudentRepository(db()));
-$dashboard = static fn (): DashboardController => new DashboardController(new DashboardRepository(db()));
+$dashboard = static fn (): DashboardController => new DashboardController(new DashboardRepository(db()), new SettingsRepository(db()));
 $auth      = static fn (): AuthController => new AuthController();
 $settings  = static fn (): SettingsController => new SettingsController(new SettingsRepository(db()));
 $reports   = static function (): ReportController {
