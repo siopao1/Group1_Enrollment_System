@@ -28,6 +28,13 @@ function envValue(string $key, $default = null)
         }
     }
 
+    // A real environment variable wins over .env (like Laravel). Hosting
+    // services such as Railway provide settings this way, without a .env file.
+    $fromEnvironment = getenv($key);
+    if ($fromEnvironment !== false && $fromEnvironment !== '') {
+        return $fromEnvironment;
+    }
+
     return $vars[$key] ?? $default;
 }
 
@@ -49,7 +56,8 @@ function getDbConnection(bool $handleFailure = true): mysqli
             envValue('DB_HOST', '127.0.0.1'),
             envValue('DB_USERNAME', 'root'),
             envValue('DB_PASSWORD', ''),
-            envValue('DB_DATABASE', 'enrollment_system_min')
+            envValue('DB_DATABASE', 'enrollment_system_min'),
+            (int) envValue('DB_PORT', 3306)
         );
         $conn->set_charset('utf8mb4');
 

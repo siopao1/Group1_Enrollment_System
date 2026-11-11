@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // ->middleware('role:admin,registrar') on a route
         $middleware->alias(['role' => EnsureRole::class]);
 
+        // On Railway (and similar hosts) HTTPS ends at a proxy in front of the
+        // app; trust its X-Forwarded-* headers so URLs and cookies use https.
+        $middleware->trustProxies(at: '*');
+
         // Not signed in → the login page; already signed in → skip the login page.
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn () => route('offerings.index'));

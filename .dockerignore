@@ -1,0 +1,15 @@
+# Not needed inside the Docker images (deploy/*.Dockerfile)
+.git
+.env
+docs
+tests
+postman
+enrollment-module/.env
+enrollment-module/vendor
+enrollment-module/node_modules
+enrollment-module/tests
+enrollment-module/storage/logs/*
+enrollment-module/storage/framework/cache/data/*
+enrollment-module/storage/framework/sessions/*
+enrollment-module/storage/framework/views/*
+enrollment-module/bootstrap/cache/*.php

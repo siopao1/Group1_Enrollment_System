@@ -34,7 +34,9 @@ final class Auth
         session_set_cookie_params([
             'lifetime' => 0,                          // cookie ends when the browser closes
             'path'     => '/',
-            'secure'   => !empty($_SERVER['HTTPS']),  // HTTPS-only once deployed over HTTPS
+            // HTTPS-only once deployed over HTTPS. Behind a hosting proxy (Railway)
+            // HTTPS ends at the proxy, which says so in X-Forwarded-Proto.
+            'secure'   => !empty($_SERVER['HTTPS']) || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https',
             'httponly' => true,                       // JavaScript cannot read the cookie (XSS)
             'samesite' => 'Lax',                      // not sent on cross-site POSTs (CSRF)
         ]);
