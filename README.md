@@ -18,7 +18,7 @@ Browser / Postman  →  REST API (native PHP: Router → Controller → Validato
 | Final – Phase 1 | Users and security tables, credentials in `.env`, user seeder | Done |
 | Final – Phase 2 | Registration, login, sessions, role-based access, CSRF, secure logout | Done |
 | Final – Phase 3 | REST API with clean URLs, bearer tokens, Postman collection | Done |
-| Final – Phase 4 | Laravel module for subjects, course offerings and enrollments | Not started |
+| Final – Phase 4 | Laravel module for subjects, course offerings and enrollments | In progress (Laravel 12 installed) |
 | Final – Phase 5 | Enrollment report and analytics | Not started |
 | Final – Phase 6 | Testing, documentation, deployment | Not started |
 
@@ -63,6 +63,27 @@ server-side checks.
    ```
    Then open <http://localhost:8000>. The last argument, `public/router.php`,
    is required: it sends `/api/...` URLs to the API.
+
+### Laravel module (`enrollment-module/`)
+
+The Laravel 12 module uses the **same MySQL/MariaDB database** as the main app.
+It needs [Composer](https://getcomposer.org). From the `enrollment-module` folder:
+
+```
+composer install
+copy .env.example .env
+php artisan key:generate
+php artisan serve --port=8001
+```
+
+Then open <http://localhost:8001>. `.env.example` is already set to the
+`enrollment_system_min` database on XAMPP's MariaDB (`DB_CONNECTION=mariadb`);
+change the `DB_*` values if yours differ. Run the main app on port 8000 and the
+Laravel module on port 8001 at the same time.
+
+> Do not run `php artisan migrate` until the module's own migrations are
+> added: Laravel's default migrations include a `users` table that would
+> conflict with the main app's `users` table.
 
 > **Using XAMPP's Apache instead:** put the project under `htdocs` and open
 > `http://localhost/<folder>/public/`. `public/api/.htaccess` routes the API
@@ -117,6 +138,7 @@ Group1_Enrollment_System/
 │   └── database/
 │       ├── schema.sql            creates the database and every table
 │       └── seed_users.php        creates the demo accounts
+├── enrollment-module/            Laravel 12 module (Phase 4), shares the same database
 ├── docs/
 │   ├── api.md                    REST API reference
 │   └── postman/                  Postman collection (import and run)
