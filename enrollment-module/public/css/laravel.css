@@ -10,6 +10,13 @@ a.btn {
   text-decoration: none;
 }
 
+/* The main app's tables are a fixed 335px scroll box (5 rows per page).
+   These pages show 10 rows, and the Enroll page lists every open section,
+   so the tables grow to fit instead. */
+.table-wrap {
+  height: auto;
+}
+
 .drawer-logout-form {
   display: contents;
 }
