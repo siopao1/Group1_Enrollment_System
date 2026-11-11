@@ -20,7 +20,7 @@ export const routes = [
     title: "Students",
     breadcrumb: "Home / Student Management / Students",
     permission: P.STUDENTS_VIEW,
-    load: () => import("./pages/students.js?v=20260919-2"),
+    load: () => import("./pages/students.js?v=20261111-4"),
   },
   {
     path: "students/new",

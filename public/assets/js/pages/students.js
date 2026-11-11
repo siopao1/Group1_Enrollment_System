@@ -58,14 +58,14 @@ async function openStudentProfile(id, navigate, onEdit) {
 }
 
 function studentRow(student) {
-  const canManage = auth.can(PERMISSIONS.STUDENTS_MANAGE);
   const actions = [{ icon: "eye", title: "View", attr: `data-view="${escapeHtml(student.id)}"` }];
 
-  if (canManage) {
-    actions.push(
-      { icon: "pencil", title: "Edit", attr: `data-edit="${escapeHtml(student.id)}"` },
-      { icon: "trash-2", title: "Delete", attr: `data-delete="${escapeHtml(student.id)}"` }
-    );
+  if (auth.can(PERMISSIONS.STUDENTS_MANAGE)) {
+    actions.push({ icon: "pencil", title: "Edit", attr: `data-edit="${escapeHtml(student.id)}"` });
+  }
+  // Only an administrator may delete; the server refuses others with 403 anyway.
+  if (auth.can(PERMISSIONS.STUDENTS_DELETE)) {
+    actions.push({ icon: "trash-2", title: "Delete", attr: `data-delete="${escapeHtml(student.id)}"` });
   }
 
   return `<tr>

@@ -15,7 +15,8 @@ export const ROLE_LABELS = Object.freeze({
 export const PERMISSIONS = Object.freeze({
   DASHBOARD_VIEW: "dashboard.view",
   STUDENTS_VIEW: "students.view",
-  STUDENTS_MANAGE: "students.manage",
+  STUDENTS_MANAGE: "students.manage", // add and edit
+  STUDENTS_DELETE: "students.delete", // admin only (DELETE /api/students/{id})
   SUBJECTS_VIEW: "subjects.view",
   SUBJECTS_MANAGE: "subjects.manage",
   OFFERINGS_VIEW: "offerings.view",
