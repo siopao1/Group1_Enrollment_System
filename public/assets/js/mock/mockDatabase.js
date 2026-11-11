@@ -30,15 +30,6 @@ export const mockDatabase = {
   
 
   
-  subjects: [],
-
-  offerings: [],
-
-  enrollments: [],
-
-  grades: [],
-
-  academicSummaries: {},
 
   dashboard: {
     stats: [

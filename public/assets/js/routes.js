@@ -1,6 +1,7 @@
 
 
 import { PERMISSIONS as P } from "./config/roles.js";
+import { movedToLaravel } from "./config/navigation.js";
 
 const dashboard = {
   name: "dashboard",
@@ -30,46 +31,6 @@ export const routes = [
     load: () => import("./pages/studentForm.js"),
   },
   {
-    path: "subjects",
-    name: "subjects",
-    title: "Subjects",
-    breadcrumb: "Home / Academic / Subjects",
-    permission: P.SUBJECTS_VIEW,
-    load: () => import("./pages/subjects.js"),
-  },
-  {
-    path: "offerings",
-    name: "offerings",
-    title: "Course Offerings",
-    breadcrumb: "Home / Academic / Course Offerings",
-    permission: P.OFFERINGS_VIEW,
-    load: () => import("./pages/offerings.js"),
-  },
-  {
-    path: "enrollment",
-    name: "enrollment",
-    title: "Enroll Student",
-    breadcrumb: "Home / Enrollment / Enroll Student",
-    permission: P.ENROLLMENTS_MANAGE,
-    load: () => import("./pages/enrollment.js?v=20260919-2"),
-  },
-  {
-    path: "enrollments",
-    name: "enrollments",
-    title: "My Enrollment Records",
-    breadcrumb: "Home / Enrollment / My Records",
-    permission: P.ENROLLMENTS_VIEW,
-    load: () => import("./pages/enrollmentRecords.js"),
-  },
-  {
-    path: "records",
-    name: "records",
-    title: "Student Records",
-    breadcrumb: "Home / Records / Student Records",
-    permission: P.RECORDS_VIEW,
-    load: () => import("./pages/academicRecords.js"),
-  },
-  {
     path: "reports",
     name: "reports",
     title: "Reports & Analytics",
@@ -85,6 +46,9 @@ export const routes = [
     permission: P.SETTINGS_MANAGE,
     load: () => import("./pages/settings.js"),
   },
+  // Old addresses of screens now in the Laravel module: the router sends
+  // the browser there (e.g. #/subjects → http://localhost:8001/subjects).
+  ...Object.entries(movedToLaravel).map(([path, url]) => ({ path, name: path, title: "Opening…", breadcrumb: "", redirect: url })),
 ];
 
 export default routes;

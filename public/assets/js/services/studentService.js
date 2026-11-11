@@ -63,11 +63,6 @@ export const studentService = {
     return data;
   },
 
-  async academicRecord(id) {
-    const { data } = await studentApi.academicRecord(id);
-    return data;
-  },
-
   async create(formValues) {
     const payload = toStudentPayload({ ...formValues, id: formValues.studentId });
 

@@ -41,6 +41,12 @@ export function createRouter({ routes, outlet, loginUrl = "login.php", onNavigat
     if (typeof cleanup === "function") cleanup();
     cleanup = null;
 
+    // A screen that moved to the Laravel module: go there instead.
+    if (route.redirect) {
+      window.location.replace(route.redirect);
+      return;
+    }
+
     if (route.permission && !auth.can(route.permission)) {
       outlet.innerHTML = unauthorizedState(route.title);
       outlet.querySelector("[data-link]")?.addEventListener("click", () => navigate("dashboard"));

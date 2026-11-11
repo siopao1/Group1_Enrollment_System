@@ -8,10 +8,16 @@ import { confirmModal } from "./components/modal.js?v=20260919-2";
 import { authService } from "./services/authService.js";
 
 function navButton(item) {
+  const inner = `<i class="icon icon-${escapeHtml(item.icon)}"></i><span class="nav-label-text">${escapeHtml(item.label)}</span>`;
+
+  // Pages in the Laravel module are ordinary links to it.
+  if (item.href) {
+    return `<a class="nav-item" href="${escapeHtml(item.href)}" style="text-decoration:none"
+  data-tooltip="${escapeHtml(item.label)}" aria-label="${escapeHtml(item.label)}">${inner}</a>`;
+  }
+
   return `<button class="nav-item" data-route="${escapeHtml(item.route)}" data-name="${escapeHtml(item.route)}"
-  data-tooltip="${escapeHtml(item.label)}" aria-label="${escapeHtml(item.label)}">
-  <i class="icon icon-${escapeHtml(item.icon)}"></i><span class="nav-label-text">${escapeHtml(item.label)}</span>
-</button>`;
+  data-tooltip="${escapeHtml(item.label)}" aria-label="${escapeHtml(item.label)}">${inner}</button>`;
 }
 
 export function createShell({ navigate }) {
@@ -64,7 +70,7 @@ export function createShell({ navigate }) {
   });
 
   on(navPanel, "click", (event) => {
-    const button = event.target.closest(".nav-item");
+    const button = event.target.closest(".nav-item[data-route]"); // links to Laravel navigate on their own
     if (button) navigate(button.dataset.route);
   });
 

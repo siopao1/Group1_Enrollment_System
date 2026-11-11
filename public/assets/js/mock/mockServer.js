@@ -28,11 +28,6 @@ function paginate(rows, query = {}) {
   };
 }
 
-function nextEnrollmentId() {
-  const numbers = db.enrollments.map((e) => Number(e.id.split("-").pop()));
-  return `ENR-2026-${String(Math.max(0, ...numbers) + 1).padStart(4, "0")}`;
-}
-
 function studentOf(id) {
   return db.students.find((s) => s.id === id) || null;
 }
@@ -76,18 +71,6 @@ const routes = [
     return student ? ok(student) : fail(404, "Student not found.");
   }],
 
-  ["GET", "/students/:id/academic-record", ({ params }) => {
-    const student = studentOf(params.id);
-    if (!student) return fail(404, "Student not found.");
-    return ok({
-      student,
-      summary: db.academicSummaries[student.id] || {
-        gpa: "—", completedUnits: 0, totalUnits: 120, standing: "No records yet", civilStatus: "—",
-      },
-      grades: db.grades.filter((g) => g.studentId === student.id),
-    });
-  }],
-
   ["POST", "/students", ({ body }) => {
     if (db.students.some((s) => s.id === body.id)) {
       return fail(422, "A student with that ID already exists.", { id: ["Student ID must be unique."] });
@@ -112,113 +95,8 @@ const routes = [
     return ok(null, "Student deleted.");
   }],
 
-  ["GET", "/subjects", ({ query }) => {
-    const search = String(query.search || "").toLowerCase();
-    const rows = db.subjects.filter(
-      (s) =>
-        `${s.code} ${s.name}`.toLowerCase().includes(search) &&
-        (!query.department || s.department === query.department)
-    );
-    return ok(rows, "Subjects retrieved successfully.");
-  }],
-
-  ["POST", "/subjects", ({ body }) => {
-    db.subjects.push({ status: "Active", ...body, units: Number(body.units) || 3 });
-    return created(body, "Subject saved successfully.");
-  }],
-
-  ["PUT", "/subjects/:code", ({ params, body }) => {
-    const subject = db.subjects.find((s) => s.code === params.code);
-    if (!subject) return fail(404, "Subject not found.");
-    Object.assign(subject, body);
-    return ok(subject, "Subject saved successfully.");
-  }],
-
-  ["DELETE", "/subjects/:code", ({ params }) => {
-    const index = db.subjects.findIndex((s) => s.code === params.code);
-    if (index === -1) return fail(404, "Subject not found.");
-    db.subjects.splice(index, 1);
-    return ok(null, "Subject deleted.");
-  }],
-
-  ["GET", "/course-offerings", ({ query }) => {
-    const rows = db.offerings.filter((o) => !query.status || o.status === query.status);
-    return ok(rows, "Course offerings retrieved successfully.");
-  }],
-
-  ["POST", "/course-offerings", ({ body }) => {
-    const offering = { id: `OFF-2026-${String(db.offerings.length + 1).padStart(3, "0")}`, enrolled: 0, status: "Open", ...body };
-    db.offerings.push(offering);
-    return created(offering, "Course offering saved successfully.");
-  }],
-
-  ["GET", "/enrollments", ({ query }) => {
-    const search = String(query.search || "").toLowerCase();
-    const rows = db.enrollments
-      .map((enrollment) => ({ ...enrollment, student: studentOf(enrollment.studentId) }))
-      .filter((row) => {
-        const haystack = `${row.id} ${row.student?.name ?? ""}`.toLowerCase();
-        return (
-          haystack.includes(search) &&
-          (!query.status || row.status === query.status) &&
-          (!query.semester || row.semester === query.semester) &&
-          (!query.program || row.student?.program === query.program)
-        );
-      });
-    const { rows: pageRows, meta } = paginate(rows, { ...query, perPage: query.perPage || 10 });
-    return ok(pageRows, "Enrollment records retrieved successfully.", meta);
-  }],
-
-  ["GET", "/enrollments/:id", ({ params }) => {
-    const enrollment = db.enrollments.find((e) => e.id === params.id);
-    if (!enrollment) return fail(404, "Enrollment record not found.");
-    return ok({ ...enrollment, student: studentOf(enrollment.studentId) });
-  }],
-
-  ["POST", "/enrollments", ({ body }) => {
-    const student = studentOf(body.studentId);
-    if (!student) return fail(422, "Select a valid student before confirming.", { studentId: ["Unknown student."] });
-    if (!body.offerings?.length) {
-      return fail(422, "Please add at least one course offering.", { offerings: ["At least one offering is required."] });
-    }
-
-    const offerings = db.offerings.filter((o) => body.offerings.includes(o.id));
-    const full = offerings.find((o) => o.enrolled >= o.slots);
-    if (full) return fail(409, `${full.code} has no remaining slots.`);
-
-    const enrollment = {
-      id: nextEnrollmentId(),
-      studentId: student.id,
-      academicYear: body.academicYear || appConfig.defaults.academicYear,
-      semester: body.semester || appConfig.defaults.semester,
-      units: offerings.reduce((total, o) => total + (o.units || 3), 0),
-      date: "Sept. 16, 2026",
-      status: "Pending",
-      offerings: offerings.map((o) => o.id),
-    };
-
-    offerings.forEach((offering) => {
-      offering.enrolled += 1;
-      if (offering.enrolled >= offering.slots) offering.status = "Full";
-    });
-
-    db.enrollments.unshift(enrollment);
-    return created(enrollment, "Enrollment successfully created.");
-  }],
-
-  ["PUT", "/enrollments/:id", ({ params, body }) => {
-    const enrollment = db.enrollments.find((e) => e.id === params.id);
-    if (!enrollment) return fail(404, "Enrollment record not found.");
-    Object.assign(enrollment, body, { id: enrollment.id });
-    return ok(enrollment, "Enrollment record updated.");
-  }],
-
-  ["DELETE", "/enrollments/:id", ({ params }) => {
-    const index = db.enrollments.findIndex((e) => e.id === params.id);
-    if (index === -1) return fail(404, "Enrollment record not found.");
-    db.enrollments.splice(index, 1);
-    return ok(null, "Enrollment record deleted.");
-  }],
+  // Subjects, course offerings and enrollments are served by the Laravel module
+  // (enrollment-module/), not by this mock.
 
   ["GET", "/settings", () => ok(db.settings)],
 

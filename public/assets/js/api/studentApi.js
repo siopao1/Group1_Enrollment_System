@@ -1,6 +1,5 @@
 
 
-import { apiClient } from "../core/apiClient.js";
 import { ApiError } from "../core/apiError.js";
 import { csrfToken } from "../core/csrf.js";
 
@@ -68,9 +67,6 @@ export const studentApi = {
   replace: (id, payload) => realRequest("PUT", one(id), payload),
   patch: (id, payload) => realRequest("PATCH", one(id), payload),
   remove: (id) => realRequest("DELETE", one(id)),
-
-  // Still served by the browser mock until the Laravel module (Phase 4).
-  academicRecord: (id) => apiClient.get(`/students/${encodeURIComponent(id)}/academic-record`),
 };
 
 export default studentApi;
