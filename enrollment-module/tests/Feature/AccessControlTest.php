@@ -8,10 +8,11 @@ use Tests\TestCase;
 /** Who may open which page (routes/web.php + the EnsureRole middleware). */
 class AccessControlTest extends TestCase
 {
-    public function test_guests_are_sent_to_the_sign_in_page(): void
+    public function test_guests_are_sent_to_the_main_apps_sign_in_page(): void
     {
+        // Single sign-on: the main app signs them in and hands them back to the page.
         foreach (['/subjects', '/offerings', '/enrollments', '/enrollments/create', '/records'] as $url) {
-            $this->get($url)->assertRedirect(route('login'));
+            $this->get($url)->assertRedirect(config('app.main_app_url') . '/go-laravel.php?to=' . rawurlencode($url));
         }
     }
 

@@ -5,8 +5,16 @@ require __DIR__ . '/../backend/auth/Auth.php';
 
 Auth::start();
 
+// Where to go after signing in. Only a hand-off to a Laravel module page is
+// accepted (single sign-on, see go-laravel.php); anything else → index.php.
+$next = (string) ($_POST['next'] ?? $_GET['next'] ?? '');
+if (preg_match('#^go-laravel\.php\?to=/[A-Za-z0-9/_-]*$#', $next) !== 1) {
+    $next = '';
+}
+$afterLogin = $next !== '' ? $next : 'index.php';
+
 if (Auth::user() !== null) {
-    header('Location: index.php');
+    header('Location: ' . $afterLogin);
     exit;
 }
 
@@ -32,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($user !== null) {
                 Auth::login($user);
-                header('Location: index.php');
+                header('Location: ' . $afterLogin);
                 exit;
             }
 
@@ -73,6 +81,9 @@ $csrf = Auth::csrfToken();
 
       <form method="post" action="login.php" novalidate>
         <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
+        <?php if ($next !== ''): ?>
+          <input type="hidden" name="next" value="<?= htmlspecialchars($next, ENT_QUOTES, 'UTF-8') ?>">
+        <?php endif; ?>
 
         <div class="field">
           <label for="username">Username</label>

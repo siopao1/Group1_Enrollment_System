@@ -216,6 +216,7 @@ foreach ([$MAIN . '/login.php', $LARAVEL . '/login'] as $url) {
 
 $db = getDbConnection(false);
 $firstAttemptId = (int) scalar('SELECT COALESCE(MAX(id), 0) FROM login_attempts');
+$firstSsoId = (int) scalar('SELECT COALESCE(MAX(id), 0) FROM sso_tokens');
 $settingsBefore = api('admin', 'GET', 'settings')->json()['data'];
 
 try {
@@ -309,15 +310,15 @@ try {
         return '419, session still active';
     });
 
-    check('AUTH-12', 'Sign out properly, then reuse the old session', 'Redirect to login; app and API refuse the old session', function () {
+    check('AUTH-12', 'Sign out properly, then reuse the old session', 'Session ended (logout passes through the Laravel module); app and API refuse the old session', function () use ($LARAVEL) {
         $http = mainSession('faculty');
         $csrf = pageCsrf($http);
         $res = $http->post('/logout.php', ['form' => ['csrf' => $csrf]]);
-        ensure($res->status === 302 && str_contains((string) $res->header('location'), 'login.php'), "Logout HTTP {$res->status}");
+        ensure($res->status === 302 && str_starts_with((string) $res->header('location'), "$LARAVEL/sso?token="), "Logout HTTP {$res->status} → " . $res->header('location'));
         $page = $http->get('/index.php')->status;
         $apiCall = $http->get('/api/students')->status;
         ensure($page === 302 && $apiCall === 401, "After logout: index.php $page, API $apiCall");
-        return 'Logout 302 → login.php; then index.php 302, API 401';
+        return 'Logout 302 → Laravel /sso (one-time logout code); then index.php 302, API 401';
     });
 
     check('AUTH-13', 'Browser caching of the signed-in page (Back button after logout)', 'index.php is sent with Cache-Control: no-store', function () {
@@ -411,10 +412,160 @@ try {
         return 'registrar 200, faculty 403; registrar delete 403 (record kept)';
     });
 
-    check('RBAC-09', 'Laravel pages while signed out', 'Redirect to the Laravel sign-in page', function () use ($LARAVEL) {
+    check('RBAC-09', 'Laravel pages while signed out', 'Redirect to the main app\'s sign-in (single sign-on), remembering the page', function () use ($LARAVEL, $MAIN) {
         $res = (new Http($LARAVEL))->get('/enrollments');
-        ensure($res->status === 302 && str_ends_with((string) $res->header('location'), '/login'), "HTTP {$res->status}");
-        return '302 → /login';
+        $location = (string) $res->header('location');
+        ensure($res->status === 302 && $location === "$MAIN/go-laravel.php?to=%2Fenrollments", "HTTP {$res->status} → $location");
+        return '302 → main app go-laravel.php?to=/enrollments';
+    });
+
+    // ================================================================ SSO
+    section('Single sign-on between the two applications');
+
+    /** One browser for both apps: full URLs, one cookie jar. */
+    $browser = static function (): Http {
+        return new Http('');
+    };
+    $signInMain = static function (Http $http, string $user) use ($MAIN): void {
+        preg_match('/name="csrf" value="([^"]+)"/', $http->get("$MAIN/login.php")->body, $m);
+        $http->post("$MAIN/login.php", ['form' => ['csrf' => $m[1] ?? '', 'username' => $user, 'password' => PASSWORDS[$user]]]);
+    };
+    $codeFrom = static function (?string $location): string {
+        preg_match('/token=([a-f0-9]{64})/', (string) $location, $m);
+        return $m[1] ?? '';
+    };
+
+    check('SSO-01', 'Signed in to the main app, open a Laravel page from the menu', 'Signed in to Laravel without a second login', function () use ($browser, $signInMain, $MAIN, $LARAVEL) {
+        $http = $browser();
+        $signInMain($http, 'registrar');
+        $hop = $http->get("$MAIN/go-laravel.php?to=%2Fsubjects");
+        ensure($hop->status === 302 && str_starts_with((string) $hop->header('location'), "$LARAVEL/sso?token="), "go-laravel HTTP {$hop->status}");
+        $land = $http->get((string) $hop->header('location'));
+        ensure($land->status === 302 && $land->header('location') === "$LARAVEL/subjects", "sso → " . $land->header('location'));
+        ensure($http->get("$LARAVEL/subjects")->status === 200, 'Subjects page not opened');
+        return 'go-laravel.php 302 → Laravel /sso → /subjects 200';
+    });
+
+    check('SSO-02', 'Role after the hand-off', 'Same user and role in Laravel: faculty still cannot add subjects', function () use ($browser, $signInMain, $MAIN, $LARAVEL) {
+        $http = $browser();
+        $signInMain($http, 'faculty');
+        $http->get("$MAIN/go-laravel.php?to=%2Fsubjects", ['follow' => true]);
+        $codes = [$http->get("$LARAVEL/subjects")->status, $http->get("$LARAVEL/subjects/create")->status];
+        ensure($codes === [200, 403], 'subjects/create: ' . implode('/', $codes));
+        return 'Subjects 200, Add subject 403';
+    });
+
+    check('SSO-03', 'Use the same one-time code twice', 'Second use refused (sent to sign-in); no Laravel session', function () use ($browser, $signInMain, $codeFrom, $MAIN, $LARAVEL) {
+        $http = $browser();
+        $signInMain($http, 'admin');
+        $url = (string) $http->get("$MAIN/go-laravel.php?to=%2Fofferings")->header('location');
+        $http->get($url); // first use
+        $other = $browser();
+        $second = $other->get($url);
+        ensure($second->status === 302 && $second->header('location') === "$MAIN/login.php", 'Second use → ' . $second->header('location'));
+        ensure($other->get("$LARAVEL/records")->status === 302, 'Signed in with a used code');
+        return 'Reused code → main login.php, not signed in';
+    });
+
+    check('SSO-04', 'Use a code after it expired', 'Refused', function () use ($browser, $signInMain, $codeFrom, $MAIN, $LARAVEL) {
+        $http = $browser();
+        $signInMain($http, 'admin');
+        $url = (string) $http->get("$MAIN/go-laravel.php?to=%2Fofferings")->header('location');
+        $stmt = $GLOBALS['db']->prepare('UPDATE sso_tokens SET expires_at = NOW() - INTERVAL 1 SECOND WHERE token_hash = ?');
+        $stmt->execute([hash('sha256', $codeFrom($url))]);
+        $res = $browser()->get($url);
+        ensure($res->status === 302 && $res->header('location') === "$MAIN/login.php", 'Expired code → ' . $res->header('location'));
+        return 'Expired code → main login.php';
+    });
+
+    check('SSO-05', 'A made-up code', 'Refused', function () use ($browser, $MAIN, $LARAVEL) {
+        $res = $browser()->get("$LARAVEL/sso?token=" . bin2hex(random_bytes(32)));
+        $res2 = $browser()->get("$MAIN/sso.php?token=" . bin2hex(random_bytes(32)));
+        ensure($res->header('location') === "$MAIN/login.php" && $res2->header('location') === 'login.php', 'Forged code accepted');
+        return 'Both apps → sign-in page';
+    });
+
+    check('SSO-06', 'How the one-time codes are stored', 'Only the SHA-256 hash; valid for 60 seconds', function () use ($browser, $signInMain, $codeFrom, $MAIN) {
+        $http = $browser();
+        $signInMain($http, 'admin');
+        $code = $codeFrom($http->get("$MAIN/go-laravel.php?to=%2F")->header('location'));
+        $raw = (int) scalar('SELECT COUNT(*) FROM sso_tokens WHERE token_hash = ?', [$code]);
+        $life = (int) scalar('SELECT TIMESTAMPDIFF(SECOND, NOW(), expires_at) FROM sso_tokens WHERE token_hash = ?', [hash('sha256', $code)]);
+        ensure($raw === 0 && $life > 50 && $life <= 60, "raw $raw, lifetime $life s");
+        return "Raw code not stored; hash stored, expires in {$life} s";
+    });
+
+    check('SSO-07', 'Signed in to Laravel, open a main-app screen from the menu', 'Signed in to the main app on that screen', function () use ($LARAVEL, $MAIN) {
+        $lv = laravelSession('registrar');
+        $hop = $lv->get('/go-main?to=students');
+        $location = (string) $hop->header('location');
+        ensure($hop->status === 302 && str_starts_with($location, "$MAIN/sso.php?token=") && str_ends_with($location, '&to=students'), "go-main → $location");
+        $main = new Http('');
+        $land = $main->get($location);
+        ensure($land->header('location') === 'index.php#/students', 'sso.php → ' . $land->header('location'));
+        $page = $main->get("$MAIN/index.php");
+        ensure($page->status === 200 && str_contains($page->body, '"role":"registrar"'), "index.php {$page->status}");
+        return 'go-main 302 → main sso.php → index.php#/students, signed in as registrar';
+    });
+
+    check('SSO-08', 'Open a Laravel page while signed out of both', 'Main sign-in page, then straight back to that page', function () use ($browser, $MAIN, $LARAVEL) {
+        $http = $browser();
+        $start = $http->get("$LARAVEL/records", ['follow' => true]);
+        ensure(str_starts_with($start->url, "$MAIN/login.php?next="), "Landed on {$start->url}");
+        preg_match('/name="csrf" value="([^"]+)"/', $start->body, $m);
+        preg_match('/name="next" value="([^"]+)"/', $start->body, $n);
+        $done = $http->post("$MAIN/login.php", ['form' => ['csrf' => $m[1] ?? '', 'next' => html_entity_decode($n[1] ?? ''), 'username' => 'faculty', 'password' => PASSWORDS['faculty']], 'follow' => true]);
+        ensure($done->url === "$LARAVEL/records" && $done->status === 200, "After sign-in: {$done->status} {$done->url}");
+        return "Laravel /records → main login.php → (sign in) → Laravel /records 200";
+    });
+
+    check('SSO-09', 'Log out of the main app', 'The Laravel session ends too', function () use ($browser, $signInMain, $MAIN, $LARAVEL) {
+        $http = $browser();
+        $signInMain($http, 'registrar');
+        $http->get("$MAIN/go-laravel.php?to=%2Frecords", ['follow' => true]);
+        ensure($http->get("$LARAVEL/records")->status === 200, 'Not signed in to Laravel first');
+        preg_match('/name="csrf-token" content="([^"]+)"/', $http->get("$MAIN/index.php")->body, $m);
+        $out = $http->post("$MAIN/logout.php", ['form' => ['csrf' => $m[1] ?? ''], 'follow' => true]);
+        $laravel = $http->get("$LARAVEL/records")->status;
+        $main = $http->get("$MAIN/index.php")->status;
+        ensure($out->url === "$MAIN/login.php" && $laravel === 302 && $main === 302, "end {$out->url}, Laravel $laravel, main $main");
+        return 'Ends on main login.php; Laravel 302, main 302 (both signed out)';
+    });
+
+    check('SSO-10', 'Log out of the Laravel module', 'The main app session ends too', function () use ($browser, $signInMain, $MAIN, $LARAVEL) {
+        $http = $browser();
+        $signInMain($http, 'registrar');
+        $http->get("$MAIN/go-laravel.php?to=%2Frecords", ['follow' => true]);
+        preg_match('/name="_token" value="([^"]+)"/', $http->get("$LARAVEL/records")->body, $m);
+        $out = $http->post("$LARAVEL/logout", ['form' => ['_token' => $m[1] ?? ''], 'follow' => true]);
+        $main = $http->get("$MAIN/index.php")->status;
+        $laravel = $http->get("$LARAVEL/records")->status;
+        ensure($out->url === "$MAIN/login.php" && $main === 302 && $laravel === 302, "end {$out->url}, main $main, Laravel $laravel");
+        return 'Ends on main login.php; main 302, Laravel 302 (both signed out)';
+    });
+
+    check('SSO-11', 'A logout code issued for a different user', 'Ignored: the signed-in user stays signed in', function () use ($browser, $signInMain, $MAIN, $LARAVEL) {
+        $http = $browser();
+        $signInMain($http, 'admin');
+        $http->get("$MAIN/go-laravel.php?to=%2Frecords", ['follow' => true]);
+        $code = bin2hex(random_bytes(32));
+        $facultyId = (int) scalar("SELECT id FROM users WHERE username = 'faculty'");
+        $stmt = $GLOBALS['db']->prepare("INSERT INTO sso_tokens (user_id, purpose, token_hash, expires_at) VALUES (?, 'logout', ?, NOW() + INTERVAL 60 SECOND)");
+        $stmt->execute([$facultyId, hash('sha256', $code)]);
+        $http->get("$LARAVEL/sso?token=$code");
+        ensure($http->get("$LARAVEL/records")->status === 200, 'Admin was signed out by another user\'s code');
+        return 'Admin still signed in to Laravel';
+    });
+
+    check('SSO-12', 'Hand-off pointing to another website (open redirect)', 'Only pages of the system are used', function () use ($browser, $signInMain, $MAIN, $LARAVEL) {
+        $http = $browser();
+        $signInMain($http, 'admin');
+        $hop = (string) $http->get("$MAIN/go-laravel.php?to=" . rawurlencode('//evil.example/x'))->header('location');
+        ensure(str_ends_with($hop, '&to=%2F'), "go-laravel → $hop");
+        $url = preg_replace('/&to=.*$/', '&to=' . rawurlencode('https://evil.example'), $hop);
+        $land = (string) $http->get($url)->header('location');
+        ensure($land === "$LARAVEL/offerings", "Laravel /sso → $land");
+        return 'to=//evil.example → "/"; to=https://evil.example → /offerings';
     });
 
     // ================================================================ CSRF
@@ -740,6 +891,8 @@ try {
     $db->query("DELETE FROM users WHERE username LIKE 'p6test%'");
     $stmt = $db->prepare('DELETE FROM login_attempts WHERE id > ?');
     $stmt->execute([$firstAttemptId]);
+    $stmt = $db->prepare('DELETE FROM sso_tokens WHERE id > ?');
+    $stmt->execute([$firstSsoId]);
     try {
         api('admin', 'PUT', 'settings', ['json' => $settingsBefore]);
     } catch (Throwable) {

@@ -177,7 +177,7 @@ Group1_Enrollment_System/
 │   └── public/css/               copy of the main app's CSS + laravel.css
 ├── postman/                      Postman collection (import and run)
 ├── tests/
-│   ├── system_test.php           60 end-to-end tests over HTTP (both apps)
+│   ├── system_test.php           72 end-to-end tests over HTTP (both apps)
 │   ├── run_postman.php           runs the Postman collection without Postman
 │   └── lib/Http.php              small HTTP client used by the tests
 ├── .htaccess                     Apache: only the two public/ folders may be opened
@@ -215,6 +215,7 @@ Group1_Enrollment_System/
 | `student_emergency_contacts` | Emergency contact person | one-to-one with `students` |
 | `users` | Sign-in accounts with hashed passwords and a role | — |
 | `api_tokens` | SHA-256 hashes of API bearer tokens, with expiry | `user_id` → `users.id` |
+| `sso_tokens` | One-time single sign-on codes (login or logout), hashed, valid 60 seconds | `user_id` → `users.id` |
 | `login_attempts` | Failed sign-ins, used for rate limiting | — |
 | `settings` | System preferences: default academic year and semester, rows per page | `updated_by` → `users.id` |
 
@@ -273,10 +274,21 @@ Other safeguards:
   same usernames and passwords work in both.
 - The menus link to each other. Old main-app addresses such as `#/subjects`
   forward to the Laravel pages.
-- Each part keeps its own sign-in session, so a user signs in once on each
-  (same credentials). Sharing one session across two separate applications on
-  different ports would need a single sign-on setup, which is outside this
-  project's scope.
+- **Single sign-on:** users sign in once, on the main app's sign-in page.
+  - Menu links between the apps go through `go-laravel.php` (main → Laravel)
+    and `/go-main` (Laravel → main). These create a one-time code in the shared
+    `sso_tokens` table, and the other app's hand-off page (`/sso` in Laravel,
+    `sso.php` in the main app) signs the same user in and opens the page.
+  - Codes are 64 random hex characters, valid for 60 seconds, usable once, and
+    stored only as SHA-256 hashes. Only paths inside the system are accepted
+    as targets, so the hand-off cannot redirect to other websites.
+  - Opening a Laravel page while signed out leads to the main sign-in page and
+    then back to that page.
+  - Logging out of either app passes a one-time logout code to the other, so
+    both sessions end. A link from another website still cannot log anyone
+    out.
+  - Each app keeps its own session cookie and still checks the role on every
+    request.
 
 ## Reports and analytics
 
@@ -347,8 +359,8 @@ Full results with expected and actual outcomes: **[docs/testing.md](docs/testing
 
 | Suite | Command (from the project folder, both servers running) | Result |
 |---|---|---|
-| System test: sign-in, roles, CSRF, SQL injection, XSS, validation, API, integration, report accuracy | `php tests\system_test.php` | 60 / 60 |
-| Laravel feature tests: enrollment rules, access control, sign-in, relationships | `cd enrollment-module` then `php artisan test` | 30 / 30 |
+| System test: sign-in, roles, CSRF, SQL injection, XSS, validation, API, single sign-on, integration, report accuracy | `php tests\system_test.php` | 60 / 60 |
+| Laravel feature tests: enrollment rules, access control, sign-in, single sign-on, relationships | `cd enrollment-module` then `php artisan test` | 39 / 39 |
 | Postman collection: every endpoint | Postman → *Run*, or `php tests\run_postman.php` | 48 / 48 |
 
 The tests leave your data as it was: the system test and Postman delete what
@@ -383,7 +395,8 @@ roles are listed under [Laravel module](#laravel-module).
 | Brute-force sign-in | 5 failures per username or 20 per IP in 15 minutes → blocked (429) | `Auth::tooManyAttempts()` |
 | Username guessing | One message for wrong username or wrong password | `login.php` |
 | Session fixation | `session_regenerate_id(true)` on sign-in | `Auth::login()` |
-| Session theft | HttpOnly + SameSite=Lax cookie, strict mode, 30-minute idle timeout | `Auth::start()` |
+| Session theft | HttpOnly + SameSite=Lax cookie (Secure over HTTPS), strict mode, 30-minute idle timeout | `Auth::start()` |
+| Single sign-on abuse | One-time codes: random, hashed, 60-second lifetime, deleted on use; only in-system targets (no open redirect); a logout code only ends the session of the user it was issued for | `SsoToken`, `go-laravel.php`, `sso.php`, `SsoController` |
 | CSRF | Per-session token on every form and on session-based API writes, compared with `hash_equals()`. Bearer-token requests cannot be forged cross-site. | `Auth::verifyCsrf()`, `ApiAuth` |
 | Broken access control | Role checked on the server for every page and API route | `Auth::requireRole()`, `public/api/index.php` + `ApiAuth` |
 | Stolen API token | Random 256-bit tokens, stored only as SHA-256 hashes, 8-hour expiry, revoked on logout | `ApiAuth` |

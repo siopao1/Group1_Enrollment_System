@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 /**
  * Run when the main app's container starts (deploy/start-main.sh).
- * Creates the database from backend/database/schema.sql the first time, when
- * its tables do not exist yet. Later starts change nothing: schema.sql only
- * creates what is missing.
+ * Applies backend/database/schema.sql, which only creates what is missing:
+ * the whole database on the first start, new tables after an update.
  *
  * Settings come from the environment: DB_HOST, DB_PORT, DB_USERNAME,
  * DB_PASSWORD, DB_DATABASE.
@@ -45,18 +44,10 @@ if ($conn === null) {
 }
 $conn->set_charset('utf8mb4');
 
-$stmt = $conn->prepare('SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?');
-$table = 'settings';
-$stmt->bind_param('ss', $name, $table);
-$stmt->execute();
-$exists = (int) $stmt->get_result()->fetch_row()[0] > 0;
-
-if ($exists) {
-    echo "init-db: database {$name} is ready\n";
-    exit(0);
-}
-
-echo "init-db: creating database {$name} from schema.sql\n";
+// schema.sql only creates what is missing (CREATE ... IF NOT EXISTS, INSERT
+// IGNORE), so it runs on every start: a new database is created, and tables
+// added in later versions (e.g. sso_tokens) appear in an existing one.
+echo "init-db: applying schema.sql to {$name}\n";
 $schema = file_get_contents($root . '/backend/database/schema.sql');
 $conn->multi_query(str_replace('enrollment_system_min', $name, $schema));
 do {

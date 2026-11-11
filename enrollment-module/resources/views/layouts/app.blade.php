@@ -1,20 +1,22 @@
 @php
     $user = auth()->user();
-    $main = config('app.main_app_url');
+    // Main-app screens open through /go-main, which signs the same user in
+    // there with a one-time code (single sign-on).
+    $main = fn (string $screen) => route('sso.go-main', ['to' => $screen]);
 
     // Same menu as the main app (public/assets/js/config/navigation.js). Items
     // owned by the main app link to it ('url'); the rest are routes in this
     // Laravel module ('route'). 'roles' => null means every signed-in role.
     $nav = [
-        ['label' => 'Dashboard', 'icon' => 'layout-dashboard', 'url' => "{$main}/index.php#/dashboard", 'roles' => null],
-        ['label' => 'Students', 'icon' => 'users', 'url' => "{$main}/index.php#/students", 'roles' => null],
+        ['label' => 'Dashboard', 'icon' => 'layout-dashboard', 'url' => $main('dashboard'), 'roles' => null],
+        ['label' => 'Students', 'icon' => 'users', 'url' => $main('students'), 'roles' => null],
         ['label' => 'Subjects', 'icon' => 'book-open', 'route' => 'subjects.index', 'match' => 'subjects.*', 'roles' => null],
         ['label' => 'Course Offerings', 'icon' => 'calendar-days', 'route' => 'offerings.index', 'match' => 'offerings.*', 'roles' => null],
         ['label' => 'Enroll Student', 'icon' => 'clipboard-list', 'route' => 'enrollments.create', 'match' => 'enrollments.create', 'roles' => ['admin', 'registrar']],
         ['label' => 'Enrollment Records', 'icon' => 'file-check', 'route' => 'enrollments.index', 'match' => ['enrollments.index', 'enrollments.show', 'enrollments.edit'], 'roles' => ['admin', 'registrar']],
         ['label' => 'Student Records', 'icon' => 'graduation-cap', 'route' => 'records.index', 'match' => 'records.*', 'roles' => null],
-        ['label' => 'Reports & Analytics', 'icon' => 'chart-no-axes-combined', 'url' => "{$main}/index.php#/reports", 'roles' => ['admin', 'registrar']],
-        ['label' => 'Settings', 'icon' => 'settings', 'url' => "{$main}/index.php#/settings", 'roles' => ['admin']],
+        ['label' => 'Reports & Analytics', 'icon' => 'chart-no-axes-combined', 'url' => $main('reports'), 'roles' => ['admin', 'registrar']],
+        ['label' => 'Settings', 'icon' => 'settings', 'url' => $main('settings'), 'roles' => ['admin']],
     ];
 
     foreach ($nav as $i => $item) {

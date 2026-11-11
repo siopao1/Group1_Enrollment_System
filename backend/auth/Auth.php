@@ -110,6 +110,30 @@ final class Auth
         $_SESSION['last_activity'] = time();
     }
 
+    /**
+     * Signs in a user by ID (single sign-on, after a valid one-time code).
+     * Returns false if the account no longer exists.
+     */
+    public static function loginById(mysqli $conn, int $id): bool
+    {
+        $stmt = $conn->prepare('SELECT id, username, full_name, email, role FROM users WHERE id = ?');
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        if (!$row) {
+            return false;
+        }
+
+        self::login([
+            'id'       => (int) $row['id'],
+            'username' => $row['username'],
+            'name'     => $row['full_name'],
+            'email'    => $row['email'],
+            'role'     => $row['role'],
+        ]);
+        return true;
+    }
+
     public static function user(): ?array
     {
         return $_SESSION['user'] ?? null;

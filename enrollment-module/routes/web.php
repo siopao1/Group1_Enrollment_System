@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\SsoController;
 use App\Http\Controllers\CourseOfferingController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\StudentRecordController;
@@ -23,6 +24,10 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
 });
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
+
+// Single sign-on with the main app (one-time codes; see SsoController)
+Route::get('/sso', [SsoController::class, 'consume'])->name('sso.consume');
+Route::get('/go-main', [SsoController::class, 'goMain'])->middleware('auth')->name('sso.go-main');
 
 Route::middleware('auth')->group(function () {
     Route::redirect('/', '/offerings');

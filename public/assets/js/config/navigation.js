@@ -1,9 +1,10 @@
 import { PERMISSIONS as P } from "./roles.js";
-import { appConfig } from "./app.config.js";
 
 // Pages built in the Laravel module open there (href); the rest are screens
 // in this app (route). Both kinds are filtered by the signed-in user's role.
-const laravel = (path) => `${appConfig.laravelUrl.replace(/\/$/, "")}/${path}`;
+// Laravel links go through go-laravel.php, which signs the same user in to
+// the module with a one-time code (single sign-on) and then opens the page.
+const laravel = (path) => `go-laravel.php?to=${encodeURIComponent(`/${path}`)}`;
 
 export const navigation = [
   { route: "dashboard", label: "Dashboard", icon: "layout-dashboard", permission: P.DASHBOARD_VIEW },

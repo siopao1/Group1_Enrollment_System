@@ -82,7 +82,12 @@ final class Http
         $content = curl_exec($this->curl);
         $status = (int) curl_getinfo($this->curl, CURLINFO_RESPONSE_CODE);
 
-        return new HttpResponse($content === false ? 0 : $status, $received, $content === false ? '' : $content);
+        return new HttpResponse(
+            $content === false ? 0 : $status,
+            $received,
+            $content === false ? '' : $content,
+            (string) curl_getinfo($this->curl, CURLINFO_EFFECTIVE_URL)
+        );
     }
 
     /** Reads a hidden form field (e.g. the CSRF token) from a page. */
@@ -111,7 +116,8 @@ final class Http
 final class HttpResponse
 {
     /** @param array<string, string[]> $headers lower-case name => values */
-    public function __construct(public int $status, public array $headers, public string $body)
+    /** $url is the final address, after any redirects that were followed. */
+    public function __construct(public int $status, public array $headers, public string $body, public string $url = '')
     {
     }
 

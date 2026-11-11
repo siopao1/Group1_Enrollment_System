@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Support\SsoToken;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -58,10 +59,17 @@ class LoginController extends Controller
 
     public function logout(Request $request): RedirectResponse
     {
+        $userId = (int) Auth::id();
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken(); // new CSRF token
 
-        return redirect()->route('login');
+        // Single sign-on: end the main app's session too. The one-time logout
+        // code means another website cannot log anyone out this way; the main
+        // app then shows its sign-in page.
+        $token = SsoToken::issue($userId, 'logout');
+
+        return redirect()->away(config('app.main_app_url') . "/sso.php?token={$token}");
     }
 }

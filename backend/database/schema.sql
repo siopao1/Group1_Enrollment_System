@@ -19,6 +19,8 @@
 --                                   stored only as password_hash() output.
 --   api_tokens                   — bearer tokens for the REST API; only the
 --                                   SHA-256 hash of each token is stored.
+--   sso_tokens                   — one-time codes for signing in to (and out
+--                                   of) both apps at once; hash only.
 --   login_attempts               — failed sign-ins, used for rate limiting.
 --   settings                     — system preferences (default term, rows per page).
 --
@@ -97,6 +99,20 @@ CREATE TABLE IF NOT EXISTS api_tokens (
     token_hash CHAR(64)  NOT NULL UNIQUE,
     expires_at DATETIME  NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Single sign-on between the main app and the Laravel module. A one-time code
+-- (valid 60 seconds) carries a signed-in user from one app to the other
+-- (purpose 'login'), or ends the user's session in the other app at logout
+-- (purpose 'logout'). Only the SHA-256 hash is stored; a code is deleted when used.
+CREATE TABLE IF NOT EXISTS sso_tokens (
+    id         INT AUTO_INCREMENT PRIMARY KEY,
+    user_id    INT                     NOT NULL,
+    purpose    ENUM('login', 'logout') NOT NULL,
+    token_hash CHAR(64)                NOT NULL UNIQUE,
+    expires_at DATETIME                NOT NULL,
+    created_at TIMESTAMP               NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

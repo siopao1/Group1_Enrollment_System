@@ -33,7 +33,7 @@ $config = ['laravelUrl' => rtrim((string) envValue('LARAVEL_URL', 'http://localh
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.468.0/font/lucide.css">
-  <link rel="stylesheet" href="assets/css/app.css?v=20261111-6">
+  <link rel="stylesheet" href="assets/css/app.css?v=20261111-7">
 </head>
 <body>
   <div class="app-shell">
@@ -85,6 +85,6 @@ $config = ['laravelUrl' => rtrim((string) envValue('LARAVEL_URL', 'http://localh
     <div class="modal" id="modal"></div>
   </div>
 
-  <script type="module" src="assets/js/main.js?v=20261111-6"></script>
+  <script type="module" src="assets/js/main.js?v=20261111-7"></script>
 </body>
 </html>
