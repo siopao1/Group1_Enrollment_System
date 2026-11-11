@@ -21,8 +21,11 @@ function envValue(string $key, $default = null)
  * Opens a MySQLi connection using the values from .env.
  * On failure the real reason is written to the server's error log and the
  * visitor only sees a generic message, so no credentials or paths leak.
+ *
+ * Pages call it with no argument. The API passes false so the exception
+ * reaches its own handler, which answers in JSON instead of plain text.
  */
-function getDbConnection(): mysqli
+function getDbConnection(bool $handleFailure = true): mysqli
 {
     // Make MySQLi throw exceptions instead of silently returning false.
     mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
@@ -38,6 +41,9 @@ function getDbConnection(): mysqli
 
         return $conn;
     } catch (mysqli_sql_exception $e) {
+        if (!$handleFailure) {
+            throw $e;
+        }
         error_log('[DB] Connection failed: ' . $e->getMessage());
         http_response_code(500);
         exit('Database connection failed. Please try again later.');
