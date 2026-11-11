@@ -61,6 +61,32 @@
 .auth-error.show {
   display: block;
 }
+.auth-success {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--success-soft);
+  color: var(--success);
+  font-size: 12px;
+}
+.auth-shell-wide {
+  width: min(560px, 100%);
+}
+.auth-card .form-grid .field {
+  margin-bottom: 0;
+}
+.auth-card .form-grid {
+  margin-bottom: 14px;
+}
+.field-error {
+  margin: 5px 0 0;
+  font-size: 11px;
+  color: var(--danger);
+}
+.auth-note a {
+  color: inherit;
+  font-weight: 600;
+}
 .auth-note {
   margin: 22px 0 0;
   padding-top: 16px;

@@ -46,7 +46,10 @@ export default {
       ${infoItem("Current Role", auth.roleLabel())}
       ${infoItem("Authorization", "Enforced server-side on every API request")}
     </div>
-    <button class="btn" style="margin-top:14px" id="logoutBtn">Log Out</button></div>
+    <div style="display:flex;gap:9px;margin-top:14px;flex-wrap:wrap">
+      ${auth.is("admin") ? `<a class="btn btn-primary" href="register.php">Create User Account</a>` : ""}
+      <button class="btn" id="logoutBtn">Log Out</button>
+    </div></div>
   </div>
 </div>`
     );
