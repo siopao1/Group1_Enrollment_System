@@ -28,6 +28,7 @@ RUN mkdir -p /var/www/html/storage/framework/cache /var/www/html/storage/framewo
 
 COPY deploy/start-apache.sh /usr/local/bin/start-apache
 COPY deploy/start-laravel.sh /usr/local/bin/start-laravel
+COPY deploy/repair-migrations.php /usr/local/lib/repair-migrations.php
 RUN chmod +x /usr/local/bin/start-apache /usr/local/bin/start-laravel
 
 # Settings come from environment variables (APP_KEY, APP_URL, MAIN_APP_URL,

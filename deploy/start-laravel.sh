@@ -11,6 +11,7 @@ php artisan view:cache
 # The module's tables refer to the main app's tables (students, users), so the
 # main schema must be imported first. A failure here is logged but does not
 # stop the site from starting.
+php /usr/local/lib/repair-migrations.php || echo "WARNING: repair-migrations failed"
 php artisan migrate --force || echo "WARNING: migrations failed - start the main app first (it creates the main tables), then redeploy."
 
 # Demo data (subjects, sections, students, enrollments) when RUN_SEEDERS=1.
