@@ -55,6 +55,12 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     /*
+    | The main PHP app (Dashboard, Students, REST API). The navigation links
+    | back to it so both parts work as one system.
+    */
+    'main_app_url' => rtrim(env('MAIN_APP_URL', 'http://localhost:8000'), '/'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------

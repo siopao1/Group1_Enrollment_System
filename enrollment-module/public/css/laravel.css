@@ -1,0 +1,131 @@
+/*
+ * Small additions for the Laravel module's Blade pages. Everything else comes
+ * from app.css, a copy of the main app's stylesheet (public/assets/css), so
+ * both parts of the system look the same. If the main app's CSS changes,
+ * copy public/assets/css into enrollment-module/public/css again.
+ */
+
+a.nav-item,
+a.btn {
+  text-decoration: none;
+}
+
+.drawer-logout-form {
+  display: contents;
+}
+
+.module-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+.profile-menu {
+  cursor: default;
+}
+
+.alert {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border-radius: var(--r-md);
+  font-size: 13px;
+}
+.alert ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+.alert-success {
+  background: var(--success-soft);
+  color: var(--success);
+}
+.alert-danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.field-error {
+  margin: 5px 0 0;
+  font-size: 11px;
+  color: var(--danger);
+}
+
+.inline-form {
+  display: inline;
+}
+.icon-action.danger:hover {
+  color: var(--danger);
+}
+button.icon-action {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+a.icon-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 12px;
+}
+.text-right {
+  text-align: right;
+}
+
+.pagination a,
+.pagination .pager span.disabled {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+.pagination .pager span.disabled {
+  opacity: 0.4;
+}
+
+.term-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+.term-picker .field {
+  min-width: 200px;
+}
+
+.offering-row.is-full td {
+  opacity: 0.55;
+}
+.offering-row input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--brand);
+}
+.units-total {
+  font-weight: 700;
+}
+
+.detail-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.auth-body .auth-card form .field {
+  margin-bottom: 14px;
+}
