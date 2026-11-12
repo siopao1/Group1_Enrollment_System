@@ -7,21 +7,6 @@ import { auth } from "../core/auth.js";
 import { PERMISSIONS } from "../config/roles.js";
 import { studentService } from "../services/studentService.js";
 
-const PLACEHOLDER_TABS = {
-  enrollment: "Enrollment Records",
-  subjects: "Subjects",
-  records: "Academic Records",
-};
-
-function notAvailable(label) {
-  return `<div class="card"><div class="card-body">
-    <div class="empty">
-      <h3>${escapeHtml(label)} not available yet.</h3>
-      <p>This part of the system hasn't been built yet.</p>
-    </div>
-  </div></div>`;
-}
-
 function overviewTab(student) {
   return `<div class="card"><div class="card-body"><div class="info-grid">
     ${infoItem("Student ID", student.id)}
@@ -52,16 +37,10 @@ function profileMarkup(student) {
   </div></div>
 
   <div class="tabs">
-    <button class="tab active" data-tab="overview">Overview</button>
-    <button class="tab" data-tab="enrollment">Enrollment</button>
-    <button class="tab" data-tab="subjects">Subjects</button>
-    <button class="tab" data-tab="records">Academic Records</button>
+    <button class="tab active" type="button">Overview</button>
   </div>
 
-  <div data-tab-panel="overview">${overviewTab(student)}</div>
-  <div data-tab-panel="enrollment" hidden>${notAvailable(PLACEHOLDER_TABS.enrollment)}</div>
-  <div data-tab-panel="subjects" hidden>${notAvailable(PLACEHOLDER_TABS.subjects)}</div>
-  <div data-tab-panel="records" hidden>${notAvailable(PLACEHOLDER_TABS.records)}</div>`;
+  ${overviewTab(student)}`;
 }
 
 export async function openStudentProfileDialog(id, navigate, onEdit) {
@@ -78,15 +57,6 @@ export async function openStudentProfileDialog(id, navigate, onEdit) {
       root.querySelector('[data-action="edit"]')?.addEventListener("click", () => {
         closeModal();
         onEdit?.();
-      });
-
-      root.querySelectorAll(".tab").forEach((tab) => {
-        tab.addEventListener("click", () => {
-          root.querySelectorAll(".tab").forEach((item) => item.classList.toggle("active", item === tab));
-          root.querySelectorAll("[data-tab-panel]").forEach((panel) => {
-            panel.hidden = panel.dataset.tabPanel !== tab.dataset.tab;
-          });
-        });
       });
     },
   });
