@@ -4,6 +4,12 @@ Options -Indexes
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "SAMEORIGIN"
     Header set Referrer-Policy "same-origin"
+
+    # Make browsers check for a newer copy of scripts and styles on every load,
+    # so a deploy shows up straight away instead of after a stale cached copy.
+    <FilesMatch "\.(js|css|html)$">
+        Header set Cache-Control "no-cache"
+    </FilesMatch>
 </IfModule>
 
 # Serve .js modules with the correct type so `import` works on every server.
